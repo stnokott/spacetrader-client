@@ -1,0 +1,33 @@
+{
+  "descriptionHash": "616B1BB5345DCAAF9BE14413048D3EB62D3185D140F6D9653DFB7CCCD4F7D3342110688272EAE90224DB696F31661D1A7D33991097A4F24ABFC71BF8D39D9970",
+  "descriptionLocation": "https://stoplight.io/api/v1/projects/spacetraders/spacetraders/nodes/reference/SpaceTraders.json?fromExportButton=true\u0026snapshotType=http_service\u0026deref=optimizedBundle",
+  "lockFileVersion": "1.0.0",
+  "kiotaVersion": "1.16.0",
+  "clientClassName": "SpaceTradersClient",
+  "clientNamespaceName": "SpaceTradersApi.Client",
+  "language": "CSharp",
+  "usesBackingStore": false,
+  "excludeBackwardCompatible": true,
+  "includeAdditionalData": true,
+  "disableSSLValidation": false,
+  "serializers": [
+    "Microsoft.Kiota.Serialization.Json.JsonSerializationWriterFactory",
+    "Microsoft.Kiota.Serialization.Text.TextSerializationWriterFactory",
+    "Microsoft.Kiota.Serialization.Form.FormSerializationWriterFactory",
+    "Microsoft.Kiota.Serialization.Multipart.MultipartSerializationWriterFactory"
+  ],
+  "deserializers": [
+    "Microsoft.Kiota.Serialization.Json.JsonParseNodeFactory",
+    "Microsoft.Kiota.Serialization.Text.TextParseNodeFactory",
+    "Microsoft.Kiota.Serialization.Form.FormParseNodeFactory"
+  ],
+  "structuredMimeTypes": [
+    "application/json",
+    "text/plain;q=0.9",
+    "application/x-www-form-urlencoded;q=0.2",
+    "multipart/form-data;q=0.1"
+  ],
+  "includePatterns": [],
+  "excludePatterns": [],
+  "disabledValidationRules": []
+}
