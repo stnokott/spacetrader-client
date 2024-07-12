@@ -1,7 +1,50 @@
-[gd_scene load_steps=5 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=8 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
-[ext_resource type="Script" path="res://scripts/client/rpc.gd" id="1_y1r5v"]
+[ext_resource type="Script" path="res://API.cs" id="2_hcbll"]
+
+[sub_resource type="GDScript" id="GDScript_g523y"]
+script/source = "extends Node
+
+const PORT = 55555
+
+@export var is_server: bool = false
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	prints(\"is server:\", is_server)
+	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+	if is_server:
+		peer.create_server(PORT, 1)
+		multiplayer.peer_connected.connect(_on_peer_connected)
+		DisplayServer.window_set_title(\"Server\")
+	else:
+		peer.create_client(\"localhost\", PORT)
+		multiplayer.connected_to_server.connect(_on_connected_to_server)
+		multiplayer.connection_failed.connect(_on_connection_failure)
+		DisplayServer.window_set_title(\"Client\")
+		
+	multiplayer.multiplayer_peer = peer
+
+func _on_connected_to_server() -> void:
+	print(\"client: connected to server\")
+	
+func _on_peer_connected(id: int) -> void:
+	print(\"server: peer connected\")
+	$UI.DoInit()
+	
+func _on_connection_failure() -> void:
+	printerr(\"connection to server failed\")
+	get_tree().quit(1)
+"
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_r3m0d"]
+properties/0/path = NodePath("GameVersionLabel:text")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("NextReset:text")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
 font_color = Color(0.8, 1, 0, 1)
@@ -17,8 +60,16 @@ func _ready() -> void:
 	text = \"v%s\" % ver
 "
 
-[node name="rpc" type="Node"]
-script = ExtResource("1_y1r5v")
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_pq58m"]
+properties/0/path = NodePath("VBoxContainer/Description:text")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("VBoxContainer/Progress:value")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="Main" type="Node"]
+script = SubResource("GDScript_g523y")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -28,6 +79,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_2puh0")
+script = ExtResource("2_hcbll")
 
 [node name="Panel" type="Panel" parent="UI"]
 layout_mode = 1
@@ -68,6 +120,12 @@ text = "SpaceTrader"
 [node name="NextReset" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
 layout_mode = 2
 text = "Next reset in 01d 23h:59m:59s"
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+replication_interval = 3.0
+delta_interval = 1.0
+replication_config = SubResource("SceneReplicationConfig_r3m0d")
+visibility_update_mode = 2
 
 [node name="VBoxRight" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
@@ -137,5 +195,8 @@ layout_mode = 2
 max_value = 1.0
 step = 0.001
 
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-spawn_path = NodePath("../UI/LoadingOverlay")
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="UI/LoadingOverlay"]
+replication_interval = 0.1
+delta_interval = 0.1
+replication_config = SubResource("SceneReplicationConfig_pq58m")
+visibility_update_mode = 2
