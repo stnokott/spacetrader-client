@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsd8hpo77j5ry"]
+
+[sub_resource type="GDScript" id="GDScript_qvcfo"]
+resource_name = "start"
+script/source = "extends Node
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	var scene: PackedScene
+	if OS.has_feature(\"dedicated_server\"):
+		print(\"running as server\")
+		scene = preload(\"res://server.tscn\")
+	else:
+		print(\"running as client\")
+		scene = preload(\"res://client.tscn\")
+	
+	var instance = scene.instantiate()
+	add_child(instance)
+"
+
+[node name="Start" type="Node"]
+script = SubResource("GDScript_qvcfo")

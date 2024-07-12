@@ -10,10 +10,22 @@ config_version=5
 
 [application]
 
-config/name="SpaceTrader (Server)"
-run/main_scene="res://main.tscn"
+config/name="SpaceTrader"
+config/version="0.0.1"
+run/main_scene="res://start.tscn"
 config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[debug]
+
+multirun/number_of_windows=2
+multirun/add_custom_args=true
+multirun/window_args=["listen", "join"]
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=600
 
 [dotnet]
 
@@ -28,3 +40,8 @@ version_control/autoload_on_startup=true
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[run_configs]
+
+data/configs=["{\"custom_scene\":\"\",\"environment_variables\":{\"APP_TYPE\":\"SERVER\"},\"name\":\"Server\",\"play_mode\":0}", "{\"custom_scene\":\"\",\"environment_variables\":{\"APP_TYPE\":\"CLIENT\"},\"name\":\"Client\",\"play_mode\":0}"]
+data/current=1

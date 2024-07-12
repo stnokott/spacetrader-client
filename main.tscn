@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://uhx3j2c4uxv6"]
-
-[ext_resource type="Script" path="res://Rpc.cs" id="1_wi51c"]
-
-[node name="rpc" type="Node"]
-script = ExtResource("1_wi51c")

@@ -1,0 +1,105 @@
+[gd_scene load_steps=4 format=3 uid="uid://diwk7wvypnwvf"]
+
+[ext_resource type="Theme" uid="uid://df21x5tbp2g1h" path="res://theme.tres" id="1_2puh0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
+font_color = Color(0.8, 1, 0, 1)
+
+[sub_resource type="GDScript" id="GDScript_7n3f6"]
+resource_name = "AppVersion"
+script/source = "extends Label
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	var ver = ProjectSettings.get_setting(\"application/config/version\", \"0.0.0\")
+	text = \"v%s\" % ver
+"
+
+[node name="UI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_2puh0")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PopupPanel" type="PopupPanel" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Header"]
+layout_mode = 2
+
+[node name="VBoxLeft" type="VBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Title" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_type_variation = &"LabelBold"
+text = "SpaceTrader"
+
+[node name="NextReset" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Next reset in 01d 23h:59m:59s"
+
+[node name="VBoxRight" type="VBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+
+[node name="Username" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxRight"]
+layout_mode = 2
+theme = ExtResource("1_2puh0")
+text = "<Username>"
+horizontal_alignment = 2
+
+[node name="Credits" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxRight"]
+layout_mode = 2
+text = "1,000,000₡"
+label_settings = SubResource("LabelSettings_qhrqq")
+horizontal_alignment = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Footer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer"]
+layout_mode = 2
+
+[node name="AppVersion" type="Label" parent="VBoxContainer/Footer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+theme_type_variation = &"LabelLowImportance"
+text = "v0.0.0"
+script = SubResource("GDScript_7n3f6")
