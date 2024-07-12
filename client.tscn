@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=5 format=3 uid="uid://diwk7wvypnwvf"]
 
-[ext_resource type="Theme" uid="uid://df21x5tbp2g1h" path="res://theme.tres" id="1_2puh0"]
+[ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
+[ext_resource type="Script" path="res://scripts/client/rpc.gd" id="1_y1r5v"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
 font_color = Color(0.8, 1, 0, 1)
@@ -11,12 +12,15 @@ script/source = "extends Label
 
 
 # Called when the node enters the scene tree for the first time.
-func _ready():
-	var ver = ProjectSettings.get_setting(\"application/config/version\", \"0.0.0\")
+func _ready() -> void:
+	var ver: String = ProjectSettings.get_setting(\"application/config/version\", \"0.0.0\")
 	text = \"v%s\" % ver
 "
 
-[node name="UI" type="Control"]
+[node name="rpc" type="Node"]
+script = ExtResource("1_y1r5v")
+
+[node name="UI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_2puh0")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="UI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -33,9 +37,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PopupPanel" type="PopupPanel" parent="."]
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -43,63 +45,94 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Header" type="MarginContainer" parent="VBoxContainer"]
+[node name="Header" type="MarginContainer" parent="UI/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Header"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/VBoxContainer/Header"]
 layout_mode = 2
 
-[node name="VBoxLeft" type="VBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+[node name="VBoxLeft" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="Title" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+[node name="GameVersionLabel" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"LabelBold"
 text = "SpaceTrader"
 
-[node name="NextReset" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+[node name="NextReset" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
 layout_mode = 2
 text = "Next reset in 01d 23h:59m:59s"
 
-[node name="VBoxRight" type="VBoxContainer" parent="VBoxContainer/Header/HBoxContainer"]
+[node name="VBoxRight" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 10
 
-[node name="Username" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxRight"]
+[node name="Username" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxRight"]
 layout_mode = 2
 theme = ExtResource("1_2puh0")
 text = "<Username>"
 horizontal_alignment = 2
 
-[node name="Credits" type="Label" parent="VBoxContainer/Header/HBoxContainer/VBoxRight"]
+[node name="Credits" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxRight"]
 layout_mode = 2
 text = "1,000,000₡"
 label_settings = SubResource("LabelSettings_qhrqq")
 horizontal_alignment = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="UI/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Footer" type="MarginContainer" parent="VBoxContainer"]
+[node name="Footer" type="MarginContainer" parent="UI/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Footer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/VBoxContainer/Footer"]
 layout_mode = 2
 
-[node name="AppVersion" type="Label" parent="VBoxContainer/Footer/HBoxContainer"]
+[node name="AppVersion" type="Label" parent="UI/VBoxContainer/Footer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 10
 theme_type_variation = &"LabelLowImportance"
 text = "v0.0.0"
 script = SubResource("GDScript_7n3f6")
+
+[node name="LoadingOverlay" type="PanelContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/LoadingOverlay"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Title" type="Label" parent="UI/LoadingOverlay/VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"LabelBold"
+text = "Initialization"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="UI/LoadingOverlay/VBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+text = "Connecting to server..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Progress" type="ProgressBar" parent="UI/LoadingOverlay/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
