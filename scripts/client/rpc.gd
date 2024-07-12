@@ -4,16 +4,33 @@ const PORT = 55555
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	$MultiplayerSpawner.set_spawn_function(_spawn_function)
+	
 	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	peer.create_client("localhost", PORT)
 	multiplayer.connected_to_server.connect(_on_connected)
 	multiplayer.connection_failed.connect(_on_connection_failure)
 	multiplayer.multiplayer_peer = peer
+	
+func _spawn_function(x: Variant) -> Node:
+	print("SpawnFunction Client: ", str(x))
+	var rect = ColorRect.new()
+	rect.color = Color("red")
+	return rect
+	
 
 func _on_connected() -> void:
 	print("connected")
 	
+	var data = { "key": "value" }
+	var packed = var_to_bytes_with_objects(data)
+	TestFunction.rpc_id(1, packed)
+	
 	_initialSync()
+	
+@rpc("any_peer", "call_local", "reliable")
+func TestFunction(data: PackedByteArray):
+	pass
 
 	
 func _on_connection_failure() -> void:

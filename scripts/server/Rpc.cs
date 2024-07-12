@@ -11,6 +11,7 @@ using Microsoft.Kiota.Http.HttpClientLibrary;
 using SpaceTradersApi;
 using SpaceTradersApi.Client;
 using SpaceTradersApi.Client.Models;
+using Godot.NativeInterop;
 
 namespace Server;
 
@@ -41,6 +42,27 @@ public partial class Rpc : Node
 	private void OnClientConnected(long id)
 	{
 		GD.Print("client connected: " + id);
+
+		var spawner = GetNode<MultiplayerSpawner>("MultiplayerSpawner");
+		spawner.SpawnFunction = Callable.From((string s) =>
+		{
+			GD.Print("SpawnFunction Server: " + s);
+			var rect = new ColorRect();
+			rect.Color = new Color("red");
+			return rect;
+		});
+
+		_ = spawner.Spawn("foo");
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public void TestFunction(byte[] data)
+	{
+		GD.Print("TestFunction");
+		var unpacked = GD.BytesToVarWithObjects(data);
+		GD.Print(unpacked.VariantType);
+		var obj = unpacked.As<Godot.Collections.Dictionary>();
+		GD.Print(obj.ToString());
 	}
 
 
