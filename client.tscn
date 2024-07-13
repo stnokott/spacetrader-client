@@ -1,17 +1,22 @@
-[gd_scene load_steps=5 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=6 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
+[ext_resource type="PackedScene" uid="uid://cvjad8di0mwlp" path="res://components/header.tscn" id="2_e1t44"]
+[ext_resource type="PackedScene" uid="uid://c1b8fjr62a8b8" path="res://components/footer.tscn" id="3_o574o"]
+[ext_resource type="PackedScene" uid="uid://d3fb8jt6110y8" path="res://components/loading_overlay.tscn" id="4_5w3wq"]
 
 [sub_resource type="GDScript" id="GDScript_g523y"]
 script/source = "extends Node
 
 const PORT = 55555
 
-const ShipResource = preload(\"res://scripts/server/ShipResource.cs\")
+const ShipResource = preload(\"res://models/ShipResource.cs\")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var peer = ENetMultiplayerPeer.new()
+	loading_overlay.show()
+	
+	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	peer.create_client(\"localhost\", PORT)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failure)
@@ -24,7 +29,7 @@ func _on_connected_to_server() -> void:
 	RequestSync.rpc_id(1)
 	
 	
-func _on_peer_connected(id: int) -> void:
+func _on_peer_connected(_id: int) -> void:
 	print(\"server: peer connected\")
 	
 func _on_connection_failure() -> void:
@@ -44,14 +49,14 @@ func SetSyncProgress(progress: float, desc: String) -> void:
 	loading_progress.value = progress
 	
 @rpc(\"authority\", \"call_remote\", \"reliable\")
-func SyncComplete():
+func SyncComplete() -> void:
 	loading_overlay.queue_free()
 	
 @onready var server_version_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/GameVersion
 @onready var server_reset_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/NextReset
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
-func SetServerStatus(version: String, nextReset: String):
+func SetServerStatus(version: String, nextReset: String) -> void:
 	server_version_label.text = \"SpaceTraders \" + version
 	server_reset_label.text = nextReset
 	
@@ -59,33 +64,19 @@ func SetServerStatus(version: String, nextReset: String):
 @onready var credits_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Credits
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
-func SetAgentInfo(name: String, credits: int):
-	username_label.text = name
+func SetAgentInfo(agentName: String, credits: int) -> void:
+	username_label.text = agentName
 	credits_label.text = Format.Currency(credits) + \"₡\"
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
-func ClearShips():
+func ClearShips() -> void:
 	print(\"ships cleared\")
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
-func AddShip(data: PackedByteArray):
-	var shipRes = ShipResource.FromBytes(data)
-	printt(\"ship added:\", shipRes.Name)
+func AddShip(data: PackedByteArray) -> void:
+	var shipRes: ShipResource = ShipResource.FromBytes(data)
+	printt(\"ship added:\", shipRes.Name, shipRes.Registration)
 	
-"
-
-[sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
-font_color = Color(0.8, 1, 0, 1)
-
-[sub_resource type="GDScript" id="GDScript_7n3f6"]
-resource_name = "AppVersion"
-script/source = "extends Label
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	var ver: String = ProjectSettings.get_setting(\"application/config/version\", \"0.0.0\")
-	text = \"v%s\" % ver
 "
 
 [node name="rpc" type="Node"]
@@ -116,95 +107,15 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Header" type="MarginContainer" parent="UI/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="HBoxContainer" type="HBoxContainer" parent="UI/VBoxContainer/Header"]
+[node name="Header" parent="UI/VBoxContainer" instance=ExtResource("2_e1t44")]
 layout_mode = 2
 
-[node name="VBoxLeft" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-
-[node name="GameVersion" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_type_variation = &"LabelBold"
-text = "SpaceTrader"
-
-[node name="NextReset" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
-layout_mode = 2
-text = "Next reset in 01d 23h:59m:59s"
-
-[node name="VBoxRight" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 10
-
-[node name="Username" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxRight"]
-layout_mode = 2
-theme = ExtResource("1_2puh0")
-text = "<Username>"
-horizontal_alignment = 2
-
-[node name="Credits" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxRight"]
-layout_mode = 2
-text = "1,000,000₡"
-label_settings = SubResource("LabelSettings_qhrqq")
-horizontal_alignment = 2
-
-[node name="PanelContainer" type="PanelContainer" parent="UI/VBoxContainer"]
+[node name="Center" type="PanelContainer" parent="UI/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Footer" type="MarginContainer" parent="UI/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="HBoxContainer" type="HBoxContainer" parent="UI/VBoxContainer/Footer"]
+[node name="Footer" parent="UI/VBoxContainer" instance=ExtResource("3_o574o")]
 layout_mode = 2
 
-[node name="AppVersion" type="Label" parent="UI/VBoxContainer/Footer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 10
-theme_type_variation = &"LabelLowImportance"
-text = "v0.0.0"
-script = SubResource("GDScript_7n3f6")
-
-[node name="LoadingOverlay" type="PanelContainer" parent="UI"]
-visible = false
+[node name="LoadingOverlay" parent="UI" instance=ExtResource("4_5w3wq")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/LoadingOverlay"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-
-[node name="Title" type="Label" parent="UI/LoadingOverlay/VBoxContainer"]
-layout_mode = 2
-theme_type_variation = &"LabelBold"
-text = "Initialization"
-horizontal_alignment = 1
-
-[node name="Description" type="Label" parent="UI/LoadingOverlay/VBoxContainer"]
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
-text = "Connecting to server..."
-horizontal_alignment = 1
-autowrap_mode = 2
-
-[node name="Progress" type="ProgressBar" parent="UI/LoadingOverlay/VBoxContainer"]
-layout_mode = 2
-max_value = 1.0
-step = 0.001

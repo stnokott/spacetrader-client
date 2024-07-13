@@ -17,7 +17,7 @@ using System.Data;
 
 namespace Server;
 
-public partial class Rpc : Node
+public partial class Server : Node
 {
 	const int PORT = 55555;
 	const int MAX_CLIENT = 1;
@@ -37,7 +37,7 @@ public partial class Rpc : Node
 		}
 	}
 
-	public Rpc()
+	public Server()
 	{
 		var authProvider = new BaseBearerTokenAuthenticationProvider(new TokenProvider());
 		var adapter = new HttpClientRequestAdapter(authProvider);
@@ -105,7 +105,10 @@ public partial class Rpc : Node
 					// TODO: pagination
 					var fleet = await _client.My.Ships.GetAsync();
 					foreach (var ship in fleet.Data) {
-						var res = new ShipResource { Name = ship.Symbol };
+						var res = new ShipResource {
+							Name = ship.Symbol,
+							Registration = ship.Registration.Name
+						};
 						var packed = res.ToBytes();
 						Rpc(nameof(AddShip), packed);
 					}

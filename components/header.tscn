@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3 uid="uid://cvjad8di0mwlp"]
+
+[ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_xdivk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
+font_color = Color(0.8, 1, 0, 1)
+
+[node name="Header" type="MarginContainer"]
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="VBoxLeft" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="GameVersion" type="Label" parent="HBoxContainer/VBoxLeft"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_type_variation = &"LabelBold"
+text = "SpaceTrader"
+
+[node name="NextReset" type="Label" parent="HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Next reset in 01d 23h:59m:59s"
+
+[node name="VBoxRight" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+
+[node name="Username" type="Label" parent="HBoxContainer/VBoxRight"]
+layout_mode = 2
+theme = ExtResource("1_xdivk")
+text = "<Username>"
+horizontal_alignment = 2
+
+[node name="Credits" type="Label" parent="HBoxContainer/VBoxRight"]
+layout_mode = 2
+text = "1,000,000₡"
+label_settings = SubResource("LabelSettings_qhrqq")
+horizontal_alignment = 2
