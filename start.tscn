@@ -22,19 +22,11 @@ func _ready() -> void:
 
 
 func _on_button_host_pressed() -> void:
-	var node: Node = preload(\"res://client.tscn\").instantiate()
-	node.is_server = true
-	var scene = PackedScene.new()
-	scene.pack(node)
-	get_tree().change_scene_to_packed(scene)
+	get_tree().change_scene_to_file(\"res://server.tscn\")
 
 
 func _on_button_client_pressed() -> void:
-	var node: Node = preload(\"res://client.tscn\").instantiate()
-	node.is_server = false
-	var scene = PackedScene.new()
-	scene.pack(node)
-	get_tree().change_scene_to_packed(scene)
+	get_tree().change_scene_to_file(\"res://client.tscn\")
 "
 
 [node name="Start" type="Node"]

@@ -1,50 +1,78 @@
-[gd_scene load_steps=8 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=5 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
-[ext_resource type="Script" path="res://API.cs" id="2_hcbll"]
 
 [sub_resource type="GDScript" id="GDScript_g523y"]
 script/source = "extends Node
 
 const PORT = 55555
 
-@export var is_server: bool = false
+const ShipResource = preload(\"res://scripts/server/ShipResource.cs\")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	prints(\"is server:\", is_server)
-	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-	if is_server:
-		peer.create_server(PORT, 1)
-		multiplayer.peer_connected.connect(_on_peer_connected)
-		DisplayServer.window_set_title(\"Server\")
-	else:
-		peer.create_client(\"localhost\", PORT)
-		multiplayer.connected_to_server.connect(_on_connected_to_server)
-		multiplayer.connection_failed.connect(_on_connection_failure)
-		DisplayServer.window_set_title(\"Client\")
+	var peer = ENetMultiplayerPeer.new()
+	peer.create_client(\"localhost\", PORT)
+	multiplayer.connected_to_server.connect(_on_connected_to_server)
+	multiplayer.connection_failed.connect(_on_connection_failure)
+	DisplayServer.window_set_title(\"Client\")
 		
 	multiplayer.multiplayer_peer = peer
 
 func _on_connected_to_server() -> void:
 	print(\"client: connected to server\")
+	RequestSync.rpc_id(1)
+	
 	
 func _on_peer_connected(id: int) -> void:
 	print(\"server: peer connected\")
-	$UI.DoInit()
 	
 func _on_connection_failure() -> void:
 	printerr(\"connection to server failed\")
 	get_tree().quit(1)
-"
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_r3m0d"]
-properties/0/path = NodePath("GameVersionLabel:text")
-properties/0/spawn = true
-properties/0/replication_mode = 1
-properties/1/path = NodePath("NextReset:text")
-properties/1/spawn = true
-properties/1/replication_mode = 1
+@rpc(\"any_peer\", \"call_remote\", \"reliable\")
+func RequestSync() -> void: pass
+
+@onready var loading_overlay: PanelContainer = $UI/LoadingOverlay
+@onready var loading_desc: Label = $UI/LoadingOverlay/VBoxContainer/Description
+@onready var loading_progress: ProgressBar = $UI/LoadingOverlay/VBoxContainer/Progress
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetSyncProgress(progress: float, desc: String) -> void:
+	loading_desc.text = desc
+	loading_progress.value = progress
+	
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SyncComplete():
+	loading_overlay.queue_free()
+	
+@onready var server_version_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/GameVersion
+@onready var server_reset_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/NextReset
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetServerStatus(version: String, nextReset: String):
+	server_version_label.text = \"SpaceTraders \" + version
+	server_reset_label.text = nextReset
+	
+@onready var username_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Username
+@onready var credits_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Credits
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetAgentInfo(name: String, credits: int):
+	username_label.text = name
+	credits_label.text = Format.Currency(credits) + \"₡\"
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func ClearShips():
+	print(\"ships cleared\")
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func AddShip(data: PackedByteArray):
+	var shipRes = ShipResource.FromBytes(data)
+	printt(\"ship added:\", shipRes.Name)
+	
+"
 
 [sub_resource type="LabelSettings" id="LabelSettings_qhrqq"]
 font_color = Color(0.8, 1, 0, 1)
@@ -60,15 +88,7 @@ func _ready() -> void:
 	text = \"v%s\" % ver
 "
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_pq58m"]
-properties/0/path = NodePath("VBoxContainer/Description:text")
-properties/0/spawn = true
-properties/0/replication_mode = 1
-properties/1/path = NodePath("VBoxContainer/Progress:value")
-properties/1/spawn = true
-properties/1/replication_mode = 1
-
-[node name="Main" type="Node"]
+[node name="rpc" type="Node"]
 script = SubResource("GDScript_g523y")
 
 [node name="UI" type="Control" parent="."]
@@ -79,7 +99,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_2puh0")
-script = ExtResource("2_hcbll")
 
 [node name="Panel" type="Panel" parent="UI"]
 layout_mode = 1
@@ -111,7 +130,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="GameVersionLabel" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
+[node name="GameVersion" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_type_variation = &"LabelBold"
@@ -120,12 +139,6 @@ text = "SpaceTrader"
 [node name="NextReset" type="Label" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
 layout_mode = 2
 text = "Next reset in 01d 23h:59m:59s"
-
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="UI/VBoxContainer/Header/HBoxContainer/VBoxLeft"]
-replication_interval = 3.0
-delta_interval = 1.0
-replication_config = SubResource("SceneReplicationConfig_r3m0d")
-visibility_update_mode = 2
 
 [node name="VBoxRight" type="VBoxContainer" parent="UI/VBoxContainer/Header/HBoxContainer"]
 layout_mode = 2
@@ -165,6 +178,7 @@ text = "v0.0.0"
 script = SubResource("GDScript_7n3f6")
 
 [node name="LoadingOverlay" type="PanelContainer" parent="UI"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -194,9 +208,3 @@ autowrap_mode = 2
 layout_mode = 2
 max_value = 1.0
 step = 0.001
-
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="UI/LoadingOverlay"]
-replication_interval = 0.1
-delta_interval = 0.1
-replication_config = SubResource("SceneReplicationConfig_pq58m")
-visibility_update_mode = 2
