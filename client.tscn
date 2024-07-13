@@ -36,6 +36,7 @@ func _on_connection_failure() -> void:
 	printerr(\"connection to server failed\")
 	get_tree().quit(1)
 
+#region Initial Sync
 @rpc(\"any_peer\", \"call_remote\", \"reliable\")
 func RequestSync() -> void: pass
 
@@ -51,7 +52,9 @@ func SetSyncProgress(progress: float, desc: String) -> void:
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func SyncComplete() -> void:
 	loading_overlay.queue_free()
-	
+#endregion
+
+#region Server Information
 @onready var server_version_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/GameVersion
 @onready var server_reset_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/NextReset
 
@@ -59,7 +62,9 @@ func SyncComplete() -> void:
 func SetServerStatus(version: String, nextReset: String) -> void:
 	server_version_label.text = \"SpaceTraders \" + version
 	server_reset_label.text = nextReset
-	
+#endregion
+
+#region Agent Information
 @onready var username_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Username
 @onready var credits_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Credits
 
@@ -67,16 +72,30 @@ func SetServerStatus(version: String, nextReset: String) -> void:
 func SetAgentInfo(agentName: String, credits: int) -> void:
 	username_label.text = agentName
 	credits_label.text = Format.Currency(credits) + \"₡\"
+#endregion
+
+#region Fleet (Ship List)
+@onready var ship_item_list: ItemList = $UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList/ItemList
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func ClearShips() -> void:
-	print(\"ships cleared\")
+	ship_item_list.clear()
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func AddShip(data: PackedByteArray) -> void:
 	var shipRes: ShipResource = ShipResource.FromBytes(data)
-	printt(\"ship added:\", shipRes.Name, shipRes.Registration)
-	
+	var iconRes: Texture2D
+	match shipRes.Status:
+		\"DOCKED\":
+			iconRes = load(\"res://textures/ship_status/docked.tres\")
+		\"IN_ORBIT\":
+			iconRes = load(\"res://textures/ship_status/in_orbit.tres\")
+		\"IN_TRANSIT\":
+			iconRes = load(\"res://textures/ship_status/in_transit.tres\")
+		_:
+			iconRes = load(\"res://textures/ship_status/unknown.tres\")
+	ship_item_list.add_item(shipRes.Name, iconRes)
+#endregion
 "
 
 [node name="rpc" type="Node"]
@@ -110,9 +129,35 @@ grow_vertical = 2
 [node name="Header" parent="UI/VBoxContainer" instance=ExtResource("2_e1t44")]
 layout_mode = 2
 
-[node name="Center" type="PanelContainer" parent="UI/VBoxContainer"]
+[node name="CenterPanel" type="PanelContainer" parent="UI/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel"]
+layout_mode = 2
+
+[node name="ShipList" type="PanelContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ItemList" type="ItemList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList"]
+layout_mode = 2
+theme_override_constants/v_separation = 5
+icon_scale = 1.5
+
+[node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="Middle" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="Right" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Footer" parent="UI/VBoxContainer" instance=ExtResource("3_o574o")]
 layout_mode = 2

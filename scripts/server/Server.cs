@@ -104,10 +104,11 @@ public partial class Server : Node
 				async () => {
 					// TODO: pagination
 					var fleet = await _client.My.Ships.GetAsync();
+					Rpc(nameof(ClearShips));
 					foreach (var ship in fleet.Data) {
 						var res = new ShipResource {
 							Name = ship.Symbol,
-							Registration = ship.Registration.Name
+							Status = ship.Nav.Status.ToString()
 						};
 						var packed = res.ToBytes();
 						Rpc(nameof(AddShip), packed);
