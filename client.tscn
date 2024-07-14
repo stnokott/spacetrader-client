@@ -136,4 +136,5 @@ size_flags_horizontal = 3
 layout_mode = 2
 
 [node name="LoadingOverlay" parent="UI" instance=ExtResource("4_5w3wq")]
+visible = false
 layout_mode = 1
