@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1b8fjr62a8b8"]
+
+[sub_resource type="GDScript" id="GDScript_7n3f6"]
+resource_name = "AppVersion"
+script/source = "extends Label
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	var ver: String = ProjectSettings.get_setting(\"application/config/version\", \"0.0.0\")
+	text = \"v%s\" % ver
+"
+
+[node name="Footer" type="MarginContainer"]
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AppVersion" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+theme_type_variation = &"LabelLowImportance"
+text = "v0.0.0"
+script = SubResource("GDScript_7n3f6")

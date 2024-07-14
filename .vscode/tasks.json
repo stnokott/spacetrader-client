@@ -1,0 +1,37 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build"
+			],
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "silent",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "generate API client",
+			"type": "docker-run",
+			"dockerRun": {
+				"image": "mcr.microsoft.com/openapi/kiota",
+				"command": "generate -lCSharp -c SpaceTradersClient -n SpaceTradersApi.Client -o /local/gen/api --exclude-backward-compatible -d \"https://stoplight.io/api/v1/projects/spacetraders/spacetraders/nodes/reference/SpaceTraders.json?fromExportButton=true&snapshotType=http_service&deref=optimizedBundle\"",
+				"remove": true,
+				"volumes": [
+					{
+						"localPath": "${cwd}",
+						"containerPath": "/local"
+					}
+				],
+			},
+		}
+	]
+}

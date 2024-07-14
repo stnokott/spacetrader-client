@@ -1,0 +1,139 @@
+[gd_scene load_steps=7 format=3 uid="uid://diwk7wvypnwvf"]
+
+[ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
+[ext_resource type="PackedScene" uid="uid://cvjad8di0mwlp" path="res://components/header.tscn" id="2_e1t44"]
+[ext_resource type="PackedScene" uid="uid://c1b8fjr62a8b8" path="res://components/footer.tscn" id="3_o574o"]
+[ext_resource type="PackedScene" uid="uid://b2jf6uq34xi5o" path="res://components/shiplist/ship_list.tscn" id="3_r1mxf"]
+[ext_resource type="PackedScene" uid="uid://d3fb8jt6110y8" path="res://components/loading_overlay.tscn" id="4_5w3wq"]
+
+[sub_resource type="GDScript" id="GDScript_g523y"]
+script/source = "extends Node
+
+const PORT = 55555
+
+const ShipResource = preload(\"res://models/ShipResource.cs\")
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	loading_overlay.show()
+	
+	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+	peer.create_client(\"localhost\", PORT)
+	multiplayer.connected_to_server.connect(_on_connected_to_server)
+	multiplayer.connection_failed.connect(_on_connection_failure)
+	DisplayServer.window_set_title(\"Client\")
+		
+	multiplayer.multiplayer_peer = peer
+
+func _on_connected_to_server() -> void:
+	print(\"client: connected to server\")
+	RequestSync.rpc_id(1)
+	
+	
+func _on_peer_connected(_id: int) -> void:
+	print(\"server: peer connected\")
+	
+func _on_connection_failure() -> void:
+	printerr(\"connection to server failed\")
+	get_tree().quit(1)
+
+#region Initial Sync
+@rpc(\"any_peer\", \"call_remote\", \"reliable\")
+func RequestSync() -> void: pass
+
+@onready var loading_overlay: Node = $UI/LoadingOverlay
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetSyncProgress(progress: float, desc: String) -> void:
+	loading_overlay.set_progress(progress, desc)
+	
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SyncComplete() -> void:
+	loading_overlay.complete()
+#endregion
+
+#region Header
+@onready var header: Node = $UI/VBoxContainer/Header
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetServerStatus(version: String, nextReset: String) -> void:
+	header.set_server_status(version, nextReset)
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func SetAgentInfo(agentName: String, credits: int) -> void:
+	header.set_agent_info(agentName, credits)
+#endregion
+
+#region Fleet (Ship List)
+@onready var ship_list: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func ClearShips() -> void:
+	ship_list.clear_ships()
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func AddShip(data: PackedByteArray) -> void:
+	ship_list.add_ship(ShipResource.FromBytes(data))
+#endregion
+"
+
+[node name="rpc" type="Node"]
+script = SubResource("GDScript_g523y")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_2puh0")
+
+[node name="Panel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" parent="UI/VBoxContainer" instance=ExtResource("2_e1t44")]
+layout_mode = 2
+
+[node name="CenterPanel" type="PanelContainer" parent="UI/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel"]
+layout_mode = 2
+
+[node name="ShipList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer" instance=ExtResource("3_r1mxf")]
+layout_mode = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="Middle" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="Right" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Footer" parent="UI/VBoxContainer" instance=ExtResource("3_o574o")]
+layout_mode = 2
+
+[node name="LoadingOverlay" parent="UI" instance=ExtResource("4_5w3wq")]
+layout_mode = 1

@@ -1,0 +1,49 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3fb8jt6110y8"]
+
+[sub_resource type="GDScript" id="GDScript_b03hw"]
+resource_name = "loading_overlay"
+script/source = "extends PanelContainer
+
+@onready var loading_desc: Label = $VBoxContainer/Description
+@onready var loading_progress: ProgressBar = $VBoxContainer/Progress
+
+func set_progress(progress: float, desc: String) -> void:
+	loading_desc.text = desc
+	loading_progress.value = progress
+	
+func complete() -> void:
+	# not intended to be reused, so we can safely delete
+	self.queue_free()
+"
+
+[node name="LoadingOverlay" type="PanelContainer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_b03hw")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"LabelBold"
+text = "Initialization"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+text = "Connecting to server..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Progress" type="ProgressBar" parent="VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001

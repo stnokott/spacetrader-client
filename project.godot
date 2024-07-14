@@ -1,0 +1,54 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="SpaceTrader"
+config/version="0.0.1"
+run/main_scene="res://start.tscn"
+config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=1
+gdscript/warnings/unsafe_property_access=1
+multirun/number_of_windows=2
+multirun/add_custom_args=true
+multirun/window_args=["listen", "join"]
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=600
+
+[dotnet]
+
+project/assembly_name="SpaceTrader (Server)"
+
+[editor]
+
+version_control/plugin_name="GitPlugin"
+version_control/autoload_on_startup=true
+
+[gui]
+
+theme/custom="res://theme.tres"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[run_configs]
+
+data/configs=["{\"custom_scene\":\"\",\"environment_variables\":{\"APP_TYPE\":\"SERVER\"},\"name\":\"Server\",\"play_mode\":0}", "{\"custom_scene\":\"\",\"environment_variables\":{\"APP_TYPE\":\"CLIENT\"},\"name\":\"Client\",\"play_mode\":0}"]
+data/current=1
