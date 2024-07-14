@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=7 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
 [ext_resource type="PackedScene" uid="uid://cvjad8di0mwlp" path="res://components/header.tscn" id="2_e1t44"]
 [ext_resource type="PackedScene" uid="uid://c1b8fjr62a8b8" path="res://components/footer.tscn" id="3_o574o"]
+[ext_resource type="PackedScene" uid="uid://b2jf6uq34xi5o" path="res://components/shiplist/ship_list.tscn" id="3_r1mxf"]
 [ext_resource type="PackedScene" uid="uid://d3fb8jt6110y8" path="res://components/loading_overlay.tscn" id="4_5w3wq"]
 
 [sub_resource type="GDScript" id="GDScript_g523y"]
@@ -40,61 +41,39 @@ func _on_connection_failure() -> void:
 @rpc(\"any_peer\", \"call_remote\", \"reliable\")
 func RequestSync() -> void: pass
 
-@onready var loading_overlay: PanelContainer = $UI/LoadingOverlay
-@onready var loading_desc: Label = $UI/LoadingOverlay/VBoxContainer/Description
-@onready var loading_progress: ProgressBar = $UI/LoadingOverlay/VBoxContainer/Progress
+@onready var loading_overlay: Node = $UI/LoadingOverlay
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func SetSyncProgress(progress: float, desc: String) -> void:
-	loading_desc.text = desc
-	loading_progress.value = progress
+	loading_overlay.set_progress(progress, desc)
 	
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func SyncComplete() -> void:
-	loading_overlay.queue_free()
+	loading_overlay.complete()
 #endregion
 
-#region Server Information
-@onready var server_version_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/GameVersion
-@onready var server_reset_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxLeft/NextReset
+#region Header
+@onready var header: Node = $UI/VBoxContainer/Header
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func SetServerStatus(version: String, nextReset: String) -> void:
-	server_version_label.text = \"SpaceTraders \" + version
-	server_reset_label.text = nextReset
-#endregion
-
-#region Agent Information
-@onready var username_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Username
-@onready var credits_label: Label = $UI/VBoxContainer/Header/HBoxContainer/VBoxRight/Credits
+	header.set_server_status(version, nextReset)
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func SetAgentInfo(agentName: String, credits: int) -> void:
-	username_label.text = agentName
-	credits_label.text = Format.Currency(credits) + \"₡\"
+	header.set_agent_info(agentName, credits)
 #endregion
 
 #region Fleet (Ship List)
-@onready var ship_item_list: ItemList = $UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList/ItemList
+@onready var ship_list: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func ClearShips() -> void:
-	ship_item_list.clear()
+	ship_list.clear_ships()
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func AddShip(data: PackedByteArray) -> void:
-	var shipRes: ShipResource = ShipResource.FromBytes(data)
-	var iconRes: Texture2D
-	match shipRes.Status:
-		\"DOCKED\":
-			iconRes = load(\"res://textures/ship_status/docked.tres\")
-		\"IN_ORBIT\":
-			iconRes = load(\"res://textures/ship_status/in_orbit.tres\")
-		\"IN_TRANSIT\":
-			iconRes = load(\"res://textures/ship_status/in_transit.tres\")
-		_:
-			iconRes = load(\"res://textures/ship_status/unknown.tres\")
-	ship_item_list.add_item(shipRes.Name, iconRes)
+	ship_list.add_ship(ShipResource.FromBytes(data))
 #endregion
 "
 
@@ -136,14 +115,8 @@ size_flags_vertical = 3
 [node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel"]
 layout_mode = 2
 
-[node name="ShipList" type="PanelContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
+[node name="ShipList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer" instance=ExtResource("3_r1mxf")]
 layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="ItemList" type="ItemList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList"]
-layout_mode = 2
-theme_override_constants/v_separation = 5
-icon_scale = 1.5
 
 [node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
 layout_mode = 2
