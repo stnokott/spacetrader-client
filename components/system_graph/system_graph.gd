@@ -7,6 +7,16 @@ const SystemResource = preload("res://models/SystemResource.cs")
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	OS.low_processor_usage_mode = true
+
+@onready var loadingOverlay: PanelContainer = $LoadingOverlay
+@onready var loadingLabel: Label = $LoadingOverlay/VBoxContainer/Label
+
+func show_loading_overlay(text: String):
+	loadingLabel.text = text
+	loadingOverlay.show()
+	
+func hide_loading_overlay():
+	loadingOverlay.hide()
 	
 func clear_systems() -> void:
 	for n in graph.get_children():
@@ -24,7 +34,7 @@ signal graph_update_required(rect: Rect2i)
 
 var prev_viewport: Rect2 = Rect2()
 
-func _on_update_graph_timer_timeout() -> void:
+func refresh_systems(force: bool = false) -> void:
 	var offset_px: Vector2 = graph.scroll_offset # offset is the top-left coordinate of the viewport
 	offset_px -= Vector2(PIXEL_PREFETCH, PIXEL_PREFETCH)
 	var size_px: Vector2 = graph.size
@@ -36,7 +46,7 @@ func _on_update_graph_timer_timeout() -> void:
 	
 	var viewport: Rect2 = Rect2(viewport_offset, viewport_size)
 	
-	if viewport != prev_viewport:
+	if force or viewport != prev_viewport:
 		emit_signal("graph_update_required", viewport)
 		prev_viewport = viewport
 

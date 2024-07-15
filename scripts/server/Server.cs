@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Server;
 
@@ -123,10 +124,6 @@ public partial class Server : Node
 						Rpc(nameof(AddShip), res.ToBytes());
 					}
 				}
-			),
-			new(
-				"Build System Index", // TODO: update/create system index in system map component
-				async () => { await SystemIndex.Update(_client, force: false); }
 			)
 		};
 
@@ -183,11 +180,30 @@ public partial class Server : Node
 		throw new NotImplementedException();
 	}
 
+	private bool buildingIndex = false;
+
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public async void BuildSystemIndex()
+	{
+		buildingIndex = true;
+		await SystemIndex.Update(_client, force: false);
+		Rpc(nameof(BuildSystemIndexComplete));
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public void BuildSystemIndexComplete()
+	{
+		buildingIndex = false;
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public async void RequestSystemsInRect(Rect2 rect)
 	{
-		// TODO: reject if index is currently building
-		GD.Print("server: requested systems in " + rect.ToString());
+		if (buildingIndex)
+		{
+			GD.Print("building system index, rejecting system query");
+			return;
+		}
 		var systems = SystemIndex.GetSystemsInRect(rect);
 		try
 		{

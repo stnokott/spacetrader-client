@@ -34,6 +34,7 @@ func _on_connected_to_server() -> void:
 	print(\"client: connected to server\")
 	connected = true
 	RequestSync.rpc_id(1)
+	BuildSystemIndex.rpc()
 	
 func _on_connection_failure() -> void:
 	printerr(\"client: connection to server failed\")
@@ -85,14 +86,23 @@ func AddShip(data: PackedByteArray) -> void:
 #region Systems (Graph)
 @onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
 
+@rpc(\"any_peer\", \"call_local\", \"reliable\")
+func BuildSystemIndex() -> void:
+	system_graph.show_loading_overlay(\"Building System Index...\")
+	
+@rpc(\"authority\", \"call_local\", \"reliable\")
+func BuildSystemIndexComplete() -> void:
+	system_graph.hide_loading_overlay()
+	system_graph.refresh_systems(true)
+
 func _on_system_graph_update_required(rect: Rect2i) -> void:
 	if !connected:
 		await multiplayer.connected_to_server
 	system_graph.clear_systems()
-	RequestSystemsInRect.rpc(rect)
+	RequestSystemsInRect.rpc_id(1, rect)
 
-@rpc(\"authority\", \"call_remote\", \"reliable\")
-func RequestSystemsInRect(rect: Rect2) -> void: pass
+@rpc(\"any_peer\", \"call_remote\", \"reliable\")
+func RequestSystemsInRect(_rect: Rect2) -> void: pass
 
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func AddSystem(data: PackedByteArray) -> void:
