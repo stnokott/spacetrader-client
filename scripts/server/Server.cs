@@ -13,7 +13,8 @@ using SpaceTradersApi.Client;
 using SpaceTradersApi.Client.Models;
 using System.Collections.Generic;
 using System.Threading;
-using System.Data;
+using Microsoft.Data.Sqlite;
+using System.Linq;
 
 namespace Server;
 
@@ -50,13 +51,19 @@ public partial class Server : Node
 		var mpPeer = new ENetMultiplayerPeer();
 		mpPeer.CreateServer(PORT, MAX_CLIENT);
 		Multiplayer.PeerConnected += OnClientConnected;
+		Multiplayer.PeerDisconnected += OnClientDisconnected;
 		Multiplayer.MultiplayerPeer = mpPeer;
 		GD.Print("server started on port " + PORT);
 	}
 
 	private void OnClientConnected(long id)
 	{
-		GD.Print("client connected: " + id);
+		GD.Print("server: new peer: " + id);
+	}
+
+	private void OnClientDisconnected(long id)
+	{
+		GD.Print("server: peer disconnected: " + id);
 	}
 
 	/// <summary>
@@ -89,31 +96,37 @@ public partial class Server : Node
 				}
 			),
 			new(
-				"Querying Agent Info",
+				"Query Agent Info",
 				async () => {
 					try {
 						var agent = await _client.My.Agent.GetAsync();
-						Rpc(nameof(SetAgentInfo),agent.Data.Symbol, agent.Data.Credits ?? 0);
+						Rpc(nameof(SetAgentInfo),agent.Data.Symbol, agent.Data.Credits.Value);
 					} catch (Exception e) {
 						GD.PrintErr(e);
 					}
 				}
 			),
 			new(
-				"Querying Fleet",
+				"Query Fleet",
 				async () => {
-					// TODO: pagination
-					var fleet = await _client.My.Ships.GetAsync();
+					var fleet = await _client.My.Ships.GetAsync((q) => {
+						// TODO: pagination
+						q.QueryParameters.Limit = 10;
+						q.QueryParameters.Page = 1;
+					});
 					Rpc(nameof(ClearShips));
 					foreach (var ship in fleet.Data) {
 						var res = new ShipResource {
 							Name = ship.Symbol,
 							Status = ship.Nav.Status.ToString()
 						};
-						var packed = res.ToBytes();
-						Rpc(nameof(AddShip), packed);
+						Rpc(nameof(AddShip), res.ToBytes());
 					}
 				}
+			),
+			new(
+				"Build System Index", // TODO: update/create system index in system map component
+				async () => { await SystemIndex.Update(_client, force: false); }
 			)
 		};
 
@@ -159,6 +172,31 @@ public partial class Server : Node
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void AddShip(byte[] data)
+	{
+		throw new NotImplementedException();
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public async void RequestSystemsInRect(Rect2 rect)
+	{
+		// TODO: reject if index is currently building
+		GD.Print("server: requested systems in " + rect.ToString());
+		var systems = SystemIndex.GetSystemsInRect(rect);
+		try
+		{
+			while (await systems.MoveNextAsync())
+			{
+				Rpc(nameof(AddSystem), systems.Current.ToBytes());
+			}
+		}
+		finally
+		{
+			await systems.DisposeAsync();
+		}
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public void AddSystem(byte[] data)
 	{
 		throw new NotImplementedException();
 	}

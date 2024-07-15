@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=8 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
 [ext_resource type="PackedScene" uid="uid://cvjad8di0mwlp" path="res://components/header.tscn" id="2_e1t44"]
 [ext_resource type="PackedScene" uid="uid://c1b8fjr62a8b8" path="res://components/footer.tscn" id="3_o574o"]
 [ext_resource type="PackedScene" uid="uid://b2jf6uq34xi5o" path="res://components/shiplist/ship_list.tscn" id="3_r1mxf"]
 [ext_resource type="PackedScene" uid="uid://d3fb8jt6110y8" path="res://components/loading_overlay.tscn" id="4_5w3wq"]
+[ext_resource type="PackedScene" uid="uid://djebwv51r6qk0" path="res://components/system_graph/system_graph.tscn" id="4_8p85f"]
 
 [sub_resource type="GDScript" id="GDScript_g523y"]
 script/source = "extends Node
@@ -12,29 +13,34 @@ script/source = "extends Node
 const PORT = 55555
 
 const ShipResource = preload(\"res://models/ShipResource.cs\")
+const SystemResource = preload(\"res://models/SystemResource.cs\")
+
+var connected = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	DisplayServer.window_set_title(\"Client\")
 	loading_overlay.show()
 	
 	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	peer.create_client(\"localhost\", PORT)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failure)
-	DisplayServer.window_set_title(\"Client\")
+	multiplayer.server_disconnected.connect(_on_server_disconnected)
 		
 	multiplayer.multiplayer_peer = peer
 
 func _on_connected_to_server() -> void:
 	print(\"client: connected to server\")
+	connected = true
 	RequestSync.rpc_id(1)
 	
-	
-func _on_peer_connected(_id: int) -> void:
-	print(\"server: peer connected\")
-	
 func _on_connection_failure() -> void:
-	printerr(\"connection to server failed\")
+	printerr(\"client: connection to server failed\")
+	get_tree().quit(1)
+	
+func _on_server_disconnected() -> void:
+	printerr(\"client: server disconnected\")
 	get_tree().quit(1)
 
 #region Initial Sync
@@ -74,6 +80,23 @@ func ClearShips() -> void:
 @rpc(\"authority\", \"call_remote\", \"reliable\")
 func AddShip(data: PackedByteArray) -> void:
 	ship_list.add_ship(ShipResource.FromBytes(data))
+#endregion
+
+#region Systems (Graph)
+@onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
+
+func _on_system_graph_view_changed(rect: Rect2i) -> void:
+	if !connected:
+		await multiplayer.connected_to_server
+	system_graph.clear_systems()
+	RequestSystemsInRect.rpc(rect)
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func RequestSystemsInRect(rect: Rect2) -> void: pass
+
+@rpc(\"authority\", \"call_remote\", \"reliable\")
+func AddSystem(data: PackedByteArray) -> void:
+	system_graph.add_system(SystemResource.FromBytes(data))
 #endregion
 "
 
@@ -123,10 +146,8 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 3.0
 
-[node name="Middle" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
+[node name="SystemGraph" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer" instance=ExtResource("4_8p85f")]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 3.0
 
 [node name="Right" type="Panel" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer"]
 layout_mode = 2
@@ -138,3 +159,5 @@ layout_mode = 2
 [node name="LoadingOverlay" parent="UI" instance=ExtResource("4_5w3wq")]
 visible = false
 layout_mode = 1
+
+[connection signal="system_graph_view_changed" from="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph" to="." method="_on_system_graph_view_changed"]
