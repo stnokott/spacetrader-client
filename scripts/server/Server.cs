@@ -34,7 +34,7 @@ public partial class Server : Node
 		Dictionary<string, object>? additionalAuthenticationContext = null,
 		CancellationToken cancellationToken = default)
 		{
-			return Task.FromResult("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiU1ROT0tPVFQxIiwidmVyc2lvbiI6InYyLjIuMCIsInJlc2V0X2RhdGUiOiIyMDI0LTA2LTMwIiwiaWF0IjoxNzIwODg3ODU4LCJzdWIiOiJhZ2VudC10b2tlbiJ9.HX20mNrnXmH_jr3aQwFjXVK2DJ9s0ggfjMS-LEH7lLpom5CGr5q2qjvwiB7iFsz_2aibmx1o89lI4hs9vSOotUPX33IW5exaHH5MLExinTXC-VL0CcGcm103ThV3ZFQO7lLcXsuqm7VNX6XwE-s8_Z5OGDnWeuVb8AGz7dCW2SpsUk44M-04yhzmEra3XOmxYVWwvATY99xCoYZt9sHiVcw-vY2UOCY5dAzYhh_y--Uzy8YKnkpmaffhc2EWyQyoZw0R3iJorI2R9C-Kqa9HUJ6H1KpPRWRSAp-YfpSqUyIOFkc03F8D3SUlq5sfDA80w6VXCJry1QFAb9bcxWRGOQ");
+			return Task.FromResult(DotEnv.Get("API_TOKEN"));
 		}
 	}
 
@@ -133,7 +133,14 @@ public partial class Server : Node
 		for (int i = 0; i < tasks.Length; i++)
 		{
 			Rpc(nameof(SetSyncProgress), (float)i / tasks.Length, tasks[i].Name);
-			await tasks[i].Fn();
+			try
+			{
+				await tasks[i].Fn();
+			}
+			catch (Exception e)
+			{
+				GD.PrintErr(e);
+			}
 		}
 
 		GD.Print("sync finished");
