@@ -19,15 +19,8 @@ func clear_systems() -> void:
 const UNITS_PER_PIXEL: float = 2.0
 # number of pixels to prefetch in each direction of the viewport
 const PIXEL_PREFETCH: int = 100
-	
-func add_system(system: SystemResource) -> void:
-	var node: GraphNode = GraphNode.new()
-	node.title = system.Name
-	node.position_offset = system.Pos / UNITS_PER_PIXEL
-	graph.add_child(node)
 
-# TODO: rename signal to graph_update_required
-signal system_graph_view_changed(rect: Rect2i)
+signal graph_update_required(rect: Rect2i)
 
 var prev_viewport: Rect2 = Rect2()
 
@@ -44,5 +37,11 @@ func _on_update_graph_timer_timeout() -> void:
 	var viewport: Rect2 = Rect2(viewport_offset, viewport_size)
 	
 	if viewport != prev_viewport:
-		emit_signal("system_graph_view_changed", viewport)
+		emit_signal("graph_update_required", viewport)
 		prev_viewport = viewport
+
+func add_system(system: SystemResource) -> void:
+	var node: GraphNode = GraphNode.new()
+	node.title = system.Name
+	node.position_offset = system.Pos / UNITS_PER_PIXEL
+	graph.add_child(node)

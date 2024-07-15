@@ -85,7 +85,7 @@ func AddShip(data: PackedByteArray) -> void:
 #region Systems (Graph)
 @onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
 
-func _on_system_graph_view_changed(rect: Rect2i) -> void:
+func _on_system_graph_update_required(rect: Rect2i) -> void:
 	if !connected:
 		await multiplayer.connected_to_server
 	system_graph.clear_systems()
@@ -160,4 +160,4 @@ layout_mode = 2
 visible = false
 layout_mode = 1
 
-[connection signal="system_graph_view_changed" from="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph" to="." method="_on_system_graph_view_changed"]
+[connection signal="graph_update_required" from="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph" to="." method="_on_system_graph_update_required"]
