@@ -106,7 +106,7 @@ public static class SystemIndex
 		using var transaction = await conn.BeginTransactionAsync();
 
 		var truncCmd = conn.CreateCommand();
-		truncCmd.CommandText = @"TRUNCATE TABLE systems";
+		truncCmd.CommandText = @"DELETE FROM TABLE systems";
 		await truncCmd.ExecuteNonQueryAsync();
 
 		var insertCmd = conn.CreateCommand();
