@@ -137,6 +137,7 @@ public partial class Server : Node
 			catch (Exception e)
 			{
 				GD.PrintErr(e);
+				GetTree().Quit(1);
 			}
 		}
 
