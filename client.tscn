@@ -15,7 +15,7 @@ const PORT = 55555
 const ShipResource = preload(\"res://models/ShipResource.cs\")
 const SystemResource = preload(\"res://models/SystemResource.cs\")
 
-var connected = false
+var connected: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
