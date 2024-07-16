@@ -54,4 +54,5 @@ func add_system(system: SystemResource) -> void:
 	var node: GraphNode = GraphNode.new()
 	node.title = system.Name
 	node.position_offset = system.Pos / UNITS_PER_PIXEL
+	node.draggable = false
 	graph.add_child(node)
