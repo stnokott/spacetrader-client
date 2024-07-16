@@ -4,32 +4,32 @@ using System;
 namespace Models;
 
 [Serializable]
-public partial class ShipResource : Resource
+public partial class ServerStatusResource : Resource
 {
 	[Export]
-	public string Name { get; set; }
+	public string Version { get; set; }
 
 	[Export]
-	public string Status { get; set; }
+	public string NextReset { get; set; }
 
 
 	public byte[] ToBytes()
 	{
 		var arr = new Godot.Collections.Array<Variant>
 			{
-				Name, Status
+				Version, NextReset
 			};
 		return GD.VarToBytes(arr);
 	}
 
-	public static ShipResource FromBytes(byte[] data)
+	public static ServerStatusResource FromBytes(byte[] data)
 	{
 		var unpacked = GD.BytesToVar(data);
 		var arr = unpacked.As<Godot.Collections.Array<Variant>>();
-		var res = new ShipResource
+		var res = new ServerStatusResource
 		{
-			Name = arr[0].AsString(),
-			Status = arr[1].AsString()
+			Version = arr[0].AsString(),
+			NextReset = arr[1].AsString()
 		};
 		return res;
 	}

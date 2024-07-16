@@ -8,6 +8,8 @@ using SpaceTradersApi.Client;
 using System.Collections.Generic;
 using System.Data;
 
+using Models;
+
 namespace Server;
 
 public static class SystemIndex

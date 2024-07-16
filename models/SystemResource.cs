@@ -1,6 +1,8 @@
 using Godot;
 using System;
 
+namespace Models;
+
 [Serializable]
 public partial class SystemResource : Resource
 {

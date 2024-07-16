@@ -12,6 +12,8 @@ using SpaceTradersApi.Client;
 using System.Collections.Generic;
 using System.Threading;
 
+using Models;
+
 namespace Server;
 
 public partial class Server : Node
@@ -89,7 +91,10 @@ public partial class Server : Node
 				"Querying Server Status",
 				async () => {
 					var serverStatus = await _client.GetAsync();
-					store.SetServerStatus(serverStatus.Version, serverStatus.ServerResets.Next);
+					store.SetServerStatus(new ServerStatusResource{
+						Version = serverStatus.Version,
+						NextReset = serverStatus.ServerResets.Next
+					});
 				}
 			),
 			new(
@@ -97,7 +102,10 @@ public partial class Server : Node
 				async () => {
 					try {
 						var agent = await _client.My.Agent.GetAsync();
-						store.SetAgentInfo(agent.Data.Symbol, agent.Data.Credits.Value);
+						store.SetAgentInfo(new AgentInfoResource{
+							Name = agent.Data.Symbol,
+							Credits = agent.Data.Credits.Value
+					});
 					} catch (Exception e) {
 						GD.PrintErr(e);
 					}

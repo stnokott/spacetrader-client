@@ -1,14 +1,15 @@
 using Godot;
 using Godot.Collections;
 
+using Models;
+
 public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
-	private string ServerVersion { get; set; } = "unknown";
-	private string ServerNextReset { get; set; } = "unknown";
-	private string AgentName { get; set; } = "unknown";
-	private long Credits { get; set; } = 0;
+	// TODO: check if we actually need a copy of each of these on the SERVER, otherwise we can stop calling the RPC methods on the server too (CallLocal=false)
+	private ServerStatusResource ServerInfo = new();
+	private AgentInfoResource AgentInfo = new();
 	private Array<ShipResource> Ships { get; set; } = new Array<ShipResource>();
 
 	public override void _Ready()
@@ -17,36 +18,36 @@ public partial class Store : Node
 	}
 
 	[Signal]
-	public delegate void ServerInfoUpdateEventHandler(string serverVersion, string serverNextReset);
+	public delegate void ServerInfoUpdateEventHandler(ServerStatusResource status);
 
-	public void SetServerStatus(string serverVersion, string serverNextReset)
+	public void SetServerStatus(ServerStatusResource serverInfo)
 	{
-		Rpc(nameof(RpcSetServerStatus), serverVersion, serverNextReset);
+		Rpc(nameof(RpcSetServerStatus), serverInfo.ToBytes());
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcSetServerStatus(string serverVersion, string serverNextReset)
+	private void RpcSetServerStatus(byte[] data)
 	{
-		ServerVersion = serverVersion;
-		ServerNextReset = serverNextReset;
-		EmitSignal(SignalName.ServerInfoUpdate, serverVersion, serverNextReset);
+		var unpacked = ServerStatusResource.FromBytes(data);
+		ServerInfo = unpacked;
+		EmitSignal(SignalName.ServerInfoUpdate, unpacked);
 	}
 
 
 	[Signal]
-	public delegate void AgentInfoUpdateEventHandler(string serverVersion, string serverNextReset);
+	public delegate void AgentInfoUpdateEventHandler(AgentInfoResource agent);
 
-	public void SetAgentInfo(string agentName, long credits)
+	public void SetAgentInfo(AgentInfoResource agent)
 	{
-		Rpc(nameof(RpcSetAgentInfo), agentName, credits);
+		Rpc(nameof(RpcSetAgentInfo), agent.ToBytes());
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcSetAgentInfo(string agentName, long credits)
+	private void RpcSetAgentInfo(byte[] data)
 	{
-		AgentName = agentName;
-		Credits = credits;
-		EmitSignal(SignalName.AgentInfoUpdate, agentName, credits);
+		var unpacked = AgentInfoResource.FromBytes(data);
+		AgentInfo = unpacked;
+		EmitSignal(SignalName.AgentInfoUpdate, unpacked);
 	}
 
 	[Signal]
