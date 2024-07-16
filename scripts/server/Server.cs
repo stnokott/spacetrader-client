@@ -8,14 +8,9 @@ using Microsoft.Kiota.Http.HttpClientLibrary;
 
 // using Kiota for client generation from OpenAPI.
 // see https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dotnet
-using SpaceTradersApi;
 using SpaceTradersApi.Client;
-using SpaceTradersApi.Client.Models;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.Data.Sqlite;
-using System.Linq;
-using System.Security.Cryptography;
 
 namespace Server;
 
@@ -25,6 +20,7 @@ public partial class Server : Node
 	const int MAX_CLIENT = 1;
 
 	private readonly SpaceTradersClient _client;
+	private readonly Store store = Store.Instance;
 
 	internal class TokenProvider : IAccessTokenProvider
 	{
@@ -93,7 +89,7 @@ public partial class Server : Node
 				"Querying Server Status",
 				async () => {
 					var serverStatus = await _client.GetAsync();
-					Rpc(nameof(SetServerStatus), serverStatus.Version, serverStatus.ServerResets.Next);
+					store.SetServerStatus(serverStatus.Version, serverStatus.ServerResets.Next);
 				}
 			),
 			new(
@@ -101,7 +97,7 @@ public partial class Server : Node
 				async () => {
 					try {
 						var agent = await _client.My.Agent.GetAsync();
-						Rpc(nameof(SetAgentInfo),agent.Data.Symbol, agent.Data.Credits.Value);
+						store.SetAgentInfo(agent.Data.Symbol, agent.Data.Credits.Value);
 					} catch (Exception e) {
 						GD.PrintErr(e);
 					}
@@ -115,13 +111,13 @@ public partial class Server : Node
 						q.QueryParameters.Limit = 10;
 						q.QueryParameters.Page = 1;
 					});
-					Rpc(nameof(ClearShips));
+					store.ClearShips();
 					foreach (var ship in fleet.Data) {
 						var res = new ShipResource {
 							Name = ship.Symbol,
 							Status = ship.Nav.Status.ToString()
 						};
-						Rpc(nameof(AddShip), res.ToBytes());
+						store.AddShip(res);
 					}
 				}
 			)
@@ -153,30 +149,6 @@ public partial class Server : Node
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void SyncComplete()
-	{
-		throw new NotImplementedException();
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void SetServerStatus(string version, string nextReset)
-	{
-		throw new NotImplementedException();
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void SetAgentInfo(string name, long credits)
-	{
-		throw new NotImplementedException();
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void ClearShips()
-	{
-		throw new NotImplementedException();
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void AddShip(byte[] data)
 	{
 		throw new NotImplementedException();
 	}

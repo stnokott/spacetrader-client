@@ -11,11 +11,11 @@ func _ready() -> void:
 @onready var loadingOverlay: PanelContainer = $LoadingOverlay
 @onready var loadingLabel: Label = $LoadingOverlay/VBoxContainer/Label
 
-func show_loading_overlay(text: String):
+func show_loading_overlay(text: String) -> void:
 	loadingLabel.text = text
 	loadingOverlay.show()
 	
-func hide_loading_overlay():
+func hide_loading_overlay() -> void:
 	loadingOverlay.hide()
 	
 func clear_systems() -> void:

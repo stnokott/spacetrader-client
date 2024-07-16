@@ -59,30 +59,6 @@ func SyncComplete() -> void:
 	loading_overlay.complete()
 #endregion
 
-#region Header
-@onready var header: Node = $UI/VBoxContainer/Header
-
-@rpc(\"authority\", \"call_remote\", \"reliable\")
-func SetServerStatus(version: String, nextReset: String) -> void:
-	header.set_server_status(version, nextReset)
-
-@rpc(\"authority\", \"call_remote\", \"reliable\")
-func SetAgentInfo(agentName: String, credits: int) -> void:
-	header.set_agent_info(agentName, credits)
-#endregion
-
-#region Fleet (Ship List)
-@onready var ship_list: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList
-
-@rpc(\"authority\", \"call_remote\", \"reliable\")
-func ClearShips() -> void:
-	ship_list.clear_ships()
-
-@rpc(\"authority\", \"call_remote\", \"reliable\")
-func AddShip(data: PackedByteArray) -> void:
-	ship_list.add_ship(ShipResource.FromBytes(data))
-#endregion
-
 #region Systems (Graph)
 @onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
 

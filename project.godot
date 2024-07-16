@@ -16,6 +16,10 @@ run/main_scene="res://start.tscn"
 config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Store="*res://scripts/Store.cs"
+
 [debug]
 
 gdscript/warnings/untyped_declaration=1
