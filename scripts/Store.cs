@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using Godot.Collections;
 
@@ -11,9 +12,9 @@ public partial class Store : Node
 	// TODO: check if directive can be used https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_features.html#preprocessor-defines
 
 	// TODO: check if we actually need a copy of each of these on the SERVER, otherwise we can stop assigning values in the setters
-	private ServerStatusResource ServerInfo = new();
-	private AgentInfoResource AgentInfo = new();
-	private Array<ShipResource> Ships { get; set; } = new Array<ShipResource>();
+	public ServerStatusResource ServerInfo { get; set; } = new();
+	public AgentInfoResource AgentInfo { get; set; } = new();
+	public Array<ShipResource> Ships { get; set; } = new Array<ShipResource>();
 
 	public override void _Ready()
 	{
