@@ -1,10 +1,11 @@
 using Godot;
 using System;
+using System.IO;
 
 namespace Models;
 
 [Serializable]
-public partial class ServerStatusResource : Resource
+public partial class ServerStatusResource : Resource, ISerializableModel
 {
 	[Export]
 	public string Version { get; set; }
@@ -12,25 +13,15 @@ public partial class ServerStatusResource : Resource
 	[Export]
 	public string NextReset { get; set; }
 
-
-	public byte[] ToBytes()
+	public void Write(BinaryWriter writer)
 	{
-		var arr = new Godot.Collections.Array<Variant>
-			{
-				Version, NextReset
-			};
-		return GD.VarToBytes(arr);
+		writer.Write(Version);
+		writer.Write(NextReset);
 	}
 
-	public static ServerStatusResource FromBytes(byte[] data)
+	public void Read<T>(BinaryReader reader) where T : ISerializableModel, new()
 	{
-		var unpacked = GD.BytesToVar(data);
-		var arr = unpacked.As<Godot.Collections.Array<Variant>>();
-		var res = new ServerStatusResource
-		{
-			Version = arr[0].AsString(),
-			NextReset = arr[1].AsString()
-		};
-		return res;
+		Version = reader.ReadString();
+		NextReset = reader.ReadString();
 	}
 }

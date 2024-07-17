@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 
 namespace Models;
 
@@ -15,12 +16,13 @@ public partial class SystemResource : Resource
 	[Export]
 	public string Factions { get; set; }
 
+	// TODO: remove once present in store
 	public byte[] ToBytes()
 	{
 		var arr = new Godot.Collections.Array<Variant>
-			{
-				Name, Pos, Type, Factions
-			};
+		{
+			Name, Pos, Type, Factions
+		};
 		return GD.VarToBytes(arr);
 	}
 

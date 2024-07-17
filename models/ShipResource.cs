@@ -1,10 +1,11 @@
 using Godot;
 using System;
+using System.IO;
 
 namespace Models;
 
 [Serializable]
-public partial class ShipResource : Resource
+public partial class ShipResource : Resource, ISerializableModel
 {
 	[Export]
 	public string Name { get; set; }
@@ -12,25 +13,15 @@ public partial class ShipResource : Resource
 	[Export]
 	public string Status { get; set; }
 
-
-	public byte[] ToBytes()
+	public void Write(BinaryWriter writer)
 	{
-		var arr = new Godot.Collections.Array<Variant>
-			{
-				Name, Status
-			};
-		return GD.VarToBytes(arr);
+		writer.Write(Name);
+		writer.Write(Status);
 	}
 
-	public static ShipResource FromBytes(byte[] data)
+	public void Read<T>(BinaryReader reader) where T : ISerializableModel, new()
 	{
-		var unpacked = GD.BytesToVar(data);
-		var arr = unpacked.As<Godot.Collections.Array<Variant>>();
-		var res = new ShipResource
-		{
-			Name = arr[0].AsString(),
-			Status = arr[1].AsString()
-		};
-		return res;
+		Name = reader.ReadString();
+		Status = reader.ReadString();
 	}
 }

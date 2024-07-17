@@ -1,10 +1,10 @@
 using Godot;
-using System;
+
+using System.IO;
 
 namespace Models;
 
-[Serializable]
-public partial class AgentInfoResource : Resource
+public partial class AgentInfoResource : Resource, ISerializableModel
 {
 	[Export]
 	public string Name { get; set; }
@@ -12,25 +12,15 @@ public partial class AgentInfoResource : Resource
 	[Export]
 	public long Credits { get; set; }
 
-
-	public byte[] ToBytes()
+	public void Write(BinaryWriter writer)
 	{
-		var arr = new Godot.Collections.Array<Variant>
-			{
-				Name, Credits
-			};
-		return GD.VarToBytes(arr);
+		writer.Write(Name);
+		writer.Write(Credits);
 	}
 
-	public static AgentInfoResource FromBytes(byte[] data)
+	public void Read<T>(BinaryReader reader) where T : ISerializableModel, new()
 	{
-		var unpacked = GD.BytesToVar(data);
-		var arr = unpacked.As<Godot.Collections.Array<Variant>>();
-		var res = new AgentInfoResource
-		{
-			Name = arr[0].AsString(),
-			Credits = arr[1].AsInt64()
-		};
-		return res;
+		Name = reader.ReadString();
+		Credits = reader.ReadInt64();
 	}
 }

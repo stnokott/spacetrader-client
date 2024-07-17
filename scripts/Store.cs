@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Godot.Collections;
 
@@ -6,6 +7,8 @@ using Models;
 public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
+
+	// TODO: check if directive can be used https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_features.html#preprocessor-defines
 
 	// TODO: check if we actually need a copy of each of these on the SERVER, otherwise we can stop assigning values in the setters
 	private ServerStatusResource ServerInfo = new();
@@ -23,13 +26,13 @@ public partial class Store : Node
 	public void SetServerStatus(ServerStatusResource serverInfo)
 	{
 		ServerInfo = serverInfo;
-		Rpc(nameof(RpcSetServerStatus), serverInfo.ToBytes());
+		Rpc(nameof(RpcSetServerStatus), Serialize.ToBytes(serverInfo));
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void RpcSetServerStatus(byte[] data)
 	{
-		var unpacked = ServerStatusResource.FromBytes(data);
+		var unpacked = Serialize.FromBytes<ServerStatusResource>(data);
 		ServerInfo = unpacked;
 		EmitSignal(SignalName.ServerInfoUpdate, unpacked);
 	}
@@ -41,13 +44,13 @@ public partial class Store : Node
 	public void SetAgentInfo(AgentInfoResource agent)
 	{
 		AgentInfo = agent;
-		Rpc(nameof(RpcSetAgentInfo), agent.ToBytes());
+		Rpc(nameof(RpcSetAgentInfo), Serialize.ToBytes(agent));
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void RpcSetAgentInfo(byte[] data)
 	{
-		var unpacked = AgentInfoResource.FromBytes(data);
+		var unpacked = Serialize.FromBytes<AgentInfoResource>(data);
 		AgentInfo = unpacked;
 		EmitSignal(SignalName.AgentInfoUpdate, unpacked);
 	}
@@ -70,14 +73,14 @@ public partial class Store : Node
 	public void AddShip(ShipResource ship)
 	{
 		Ships.Add(ship);
-		Rpc(nameof(RpcAddShip), ship.ToBytes());
+		Rpc(nameof(RpcAddShip), Serialize.ToBytes(ship));
 	}
 
 
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void RpcAddShip(byte[] data)
 	{
-		Ships.Add(ShipResource.FromBytes(data));
+		Ships.Add(Serialize.FromBytes<ShipResource>(data));
 		EmitSignal(SignalName.ShipUpdate);
 	}
 }
