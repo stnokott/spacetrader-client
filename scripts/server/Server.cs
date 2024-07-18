@@ -40,7 +40,12 @@ public partial class Server : Node
 	public Server()
 	{
 		var authProvider = new BaseBearerTokenAuthenticationProvider(new TokenProvider());
-		var adapter = new HttpClientRequestAdapter(authProvider);
+#if TOOLS
+		GD.Print("running in editor, using mock server");
+		var adapter = ServerMock.NewAdapter();
+#else
+		var adapter = new HttpClientRequestAdapter(authProvider);v
+#endif
 		_client = new SpaceTradersClient(adapter);
 	}
 

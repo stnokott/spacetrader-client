@@ -108,7 +108,7 @@ public static class SystemIndex
 		using var transaction = await conn.BeginTransactionAsync();
 
 		var truncCmd = conn.CreateCommand();
-		truncCmd.CommandText = @"DELETE FROM TABLE systems";
+		truncCmd.CommandText = @"DELETE FROM systems";
 		await truncCmd.ExecuteNonQueryAsync();
 
 		var insertCmd = conn.CreateCommand();
@@ -131,14 +131,6 @@ public static class SystemIndex
 
 			foreach (var system in systems.Data)
 			{
-				/*
-				var res = new SystemResource {
-					Name = system.Symbol,
-					X = system.X.Value,
-					Y = system.Y.Value
-				};
-				Rpc(nameof(AddSystem), res.ToBytes());
-				*/
 				insertCmd.Parameters.Clear();
 				insertCmd.Parameters.AddWithValue("$symbol", system.Symbol);
 				insertCmd.Parameters.AddWithValue("$x", system.X);
