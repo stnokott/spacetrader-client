@@ -30,7 +30,9 @@ public partial class Server : Node
 
 		public Task<string> GetAuthorizationTokenAsync(
 		Uri uri,
+#nullable enable
 		Dictionary<string, object>? additionalAuthenticationContext = null,
+#nullable disable
 		CancellationToken cancellationToken = default)
 		{
 			return Task.FromResult(DotEnv.Get("API_TOKEN"));
