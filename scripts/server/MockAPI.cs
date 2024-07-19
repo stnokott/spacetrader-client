@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Godot;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Serialization;
@@ -51,22 +54,9 @@ public class ServerMock
 		}
 	};
 
-	public static readonly SystemsGetResponse Systems = new()
-	{
-		Data = new List<SpaceTradersApi.Client.Models.System>{
-			new() {
-				Symbol = "ABC-123",
-				X = 0, Y = 0,
-				Type = SystemType.NEBULA,
-				Factions = new List<SystemFaction>()
-			}
-		},
-		Meta = new Meta
-		{
-			Total = 1,
-			Page = 1
-		}
-	};
+	private static readonly Paginated<SpaceTradersApi.Client.Models.System> SystemsPaginated = new(
+		GenerateSystems(100, -2000, 2000)
+	);
 
 	public static IRequestAdapter NewAdapter()
 	{
@@ -98,17 +88,74 @@ public class ServerMock
 			Arg.Any<ParsableFactory<SystemsGetResponse>>(),
 			Arg.Any<Dictionary<string, ParsableFactory<IParsable>>>(),
 			Arg.Any<CancellationToken>()
-		).Returns(Systems);
+		).Returns(x =>
+		{
+			var req = x.ArgAt<RequestInformation>(0);
+			var qp = req.QueryParameters;
+			var (items, meta) = SystemsPaginated.Page((int)qp["page"], (int)qp["limit"]);
+			return new SystemsGetResponse
+			{
+				Data = items,
+				Meta = meta
+			};
+		});
 
 		return adapter;
 	}
 
-	private static void PrintDict(IDictionary<string, object> d)
+	private static List<SpaceTradersApi.Client.Models.System> GenerateSystems(int count, int coordMin, int coordMax)
 	{
-		GD.Print("printing:");
-		foreach (KeyValuePair<string, object> kv in d)
+		List<SpaceTradersApi.Client.Models.System> systems = new(count);
+		Random rnd = new();
+		for (var i = 0; i < count; i++)
 		{
-			GD.Print("k=" + kv.Key + " v=" + kv.Value);
+			var systemTypes = Enum.GetValues(typeof(SystemType));
+			var systemFactions = Enum.GetValues(typeof(FactionSymbol));
+			var system = new SpaceTradersApi.Client.Models.System
+			{
+				Symbol = GenerateSystemName(count, i),
+				X = rnd.Next(coordMin, coordMax),
+				Y = rnd.Next(coordMin, coordMax),
+				Type = (SystemType)systemTypes.GetValue(rnd.Next(systemTypes.Length)),
+				Factions = new List<SystemFaction>(systemFactions.OfType<SystemFaction>().ToList())
+			};
+			systems.Add(system);
+		}
+		return systems;
+	}
+
+	private static string GenerateSystemName(int totalSystems, int i)
+	{
+		var range = 'Z' - 'A' + 1;
+		var nameLength = (int)Math.Ceiling((double)totalSystems / range);
+		var s = new StringBuilder(nameLength);
+		for (int j = 0; j < nameLength; j++)
+		{
+			s.Append((char)('A' + (i % range)));
+			i /= range;
+		}
+		return s.ToString();
+	}
+
+	private class Paginated<T>
+	{
+		private readonly List<T> Items;
+
+		public Paginated(List<T> items)
+		{
+			Items = items;
+		}
+
+		public (List<T>, Meta) Page(int page, int limit)
+		{
+			var l = Items.Chunk(limit).ElementAtOrDefault(page - 1).ToList();
+			var meta = new Meta
+			{
+				Limit = limit,
+				Page = page,
+				Total = Items.Count
+			};
+			return (l, meta);
 		}
 	}
 }
