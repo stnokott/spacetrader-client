@@ -6,8 +6,8 @@
 resource_name = "header"
 script/source = "extends MarginContainer
 
-const ServerStatusResource = preload(\"res://models/ServerStatusResource.cs\")
-const AgentInfoResource = preload(\"res://models/AgentInfoResource.cs\")
+const InternalServerStatus = preload(\"res://scripts/models/InternalServerStatus.cs\")
+const InternalAgentInfo = preload(\"res://scripts/models/InternalAgentInfo.cs\")
 
 func _ready() -> void:
 	Store.ServerInfoUpdate.connect(_set_server_status)
@@ -16,14 +16,14 @@ func _ready() -> void:
 @onready var server_version_label: Label = $HBoxContainer/VBoxLeft/GameVersion
 @onready var server_reset_label: Label = $HBoxContainer/VBoxLeft/NextReset
 
-func _set_server_status(status: ServerStatusResource) -> void:
+func _set_server_status(status: InternalServerStatus) -> void:
 	server_version_label.text = \"SpaceTraders \" + status.Version
 	server_reset_label.text = status.NextReset
 	
 @onready var username_label: Label = $HBoxContainer/VBoxRight/Username
 @onready var credits_label: Label = $HBoxContainer/VBoxRight/Credits
 
-func _set_agent_info(agent: AgentInfoResource) -> void:
+func _set_agent_info(agent: InternalAgentInfo) -> void:
 	username_label.text = agent.Name
 	credits_label.text = Format.Currency(agent.Credits) + \"₡\"
 "

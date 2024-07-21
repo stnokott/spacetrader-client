@@ -4,19 +4,19 @@
 resource_name = "ship_list"
 script/source = "extends PanelContainer
 
-const ShipResource = preload(\"res://models/ShipResource.cs\")
+const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
 
 @onready var list: ItemList = $ItemList
 
 func _ready() -> void:
-	Store.ShipUpdate.connect(_on_ships_updated)
+	Store.FleetUpdate.connect(_on_ships_updated)
 	
-func _on_ships_updated() -> void:
+func _on_ships_updated(ships: Array) -> void:
 	list.clear()
-	for ship: ShipResource in Store.Ships:
+	for ship: InternalShip in ships:
 		_add_ship(ship)
 
-func _add_ship(ship: ShipResource) -> void:
+func _add_ship(ship: InternalShip) -> void:
 	var iconRes: Texture2D
 	match ship.Status:
 		\"DOCKED\":

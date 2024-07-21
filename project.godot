@@ -12,7 +12,7 @@ config_version=5
 
 config/name="SpaceTrader"
 config/version="0.0.1"
-run/main_scene="res://start.tscn"
+run/main_scene="res://client.tscn"
 config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
 

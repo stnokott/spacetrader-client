@@ -1,7 +1,10 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Godot;
-using Godot.Collections;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using GrpcSpacetrader;
 
 using Models;
 
@@ -9,79 +12,79 @@ public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
-	// TODO: check if directive can be used https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_features.html#preprocessor-defines
-
-	// TODO: check if we actually need a copy of each of these on the SERVER, otherwise we can stop assigning values in the setters
-	public ServerStatusResource ServerInfo { get; set; } = new();
-	public AgentInfoResource AgentInfo { get; set; } = new();
-	public Array<ShipResource> Ships { get; set; } = new Array<ShipResource>();
+	private Rpc.Client _grpc;
+	public List<Ship> Ships { get; set; } = new List<Ship>();
 
 	public override void _Ready()
 	{
 		Instance = this;
+		_grpc = new Rpc.Client("localhost", 55555); // TODO: configure from UI
+																								// TODO: connection error handling
+	}
+
+	public override void _ExitTree()
+	{
+		_grpc.Dispose();
+		base._ExitTree();
 	}
 
 	[Signal]
-	public delegate void ServerInfoUpdateEventHandler(ServerStatusResource status);
+	public delegate void ServerInfoUpdateEventHandler(InternalServerStatus status);
 
-	public void SetServerStatus(ServerStatusResource serverInfo)
+	public async Task UpdateServerStatus()
 	{
-		ServerInfo = serverInfo;
-		Rpc(nameof(RpcSetServerStatus), Serialize.ToBytes(serverInfo));
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcSetServerStatus(byte[] data)
-	{
-		var unpacked = Serialize.FromBytes<ServerStatusResource>(data);
-		ServerInfo = unpacked;
-		EmitSignal(SignalName.ServerInfoUpdate, unpacked);
+		var serverStatus = await _grpc.GetServerStatusAsync(new Empty());
+		EmitSignal(SignalName.ServerInfoUpdate, new InternalServerStatus
+		{
+			Version = serverStatus.Version,
+			NextReset = serverStatus.NextReset.ToString() // TODO: check if DateTime can be used
+		});
 	}
 
 
 	[Signal]
-	public delegate void AgentInfoUpdateEventHandler(AgentInfoResource agent);
+	public delegate void AgentInfoUpdateEventHandler(InternalAgentInfo agent);
 
-	public void SetAgentInfo(AgentInfoResource agent)
+	public async Task UpdateAgentInfo()
 	{
-		AgentInfo = agent;
-		Rpc(nameof(RpcSetAgentInfo), Serialize.ToBytes(agent));
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcSetAgentInfo(byte[] data)
-	{
-		var unpacked = Serialize.FromBytes<AgentInfoResource>(data);
-		AgentInfo = unpacked;
-		EmitSignal(SignalName.AgentInfoUpdate, unpacked);
+		var agentInfo = await _grpc.GetCurrentAgentAsync(new Empty());
+		EmitSignal(SignalName.AgentInfoUpdate, new InternalAgentInfo
+		{
+			Name = agentInfo.Name,
+			Credits = agentInfo.Credits
+		});
 	}
 
 	[Signal]
-	public delegate void ShipUpdateEventHandler();
+	public delegate void FleetUpdateEventHandler(Godot.Collections.Array<InternalShip> ships);
 
-	public void ClearShips()
+	public async Task UpdateShips()
 	{
-		Rpc(nameof(RpcClearShips));
+		var ships = await _grpc.GetFleetAsync(new Empty());
+		var internalShips = ships.Ships.Select((ship) =>
+		{
+			return new InternalShip
+			{
+				Name = ship.Name,
+				Status = ship.Status.ToString() // TODO: enum?
+			};
+		});
+		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcClearShips()
+	public async Task<List<GrpcSpacetrader.System>> GetSystemsInRect(Vector2I start, Vector2I end)
 	{
-		Ships.Clear();
-		EmitSignal(SignalName.ShipUpdate);
-	}
+		var systems = _grpc.GetSystemsInRect(new Rect
+		{
+			Start = new Vector { X = start.X, Y = start.Y },
+			End = new Vector { X = end.X, Y = end.Y }
+		});
 
-	public void AddShip(ShipResource ship)
-	{
-		Ships.Add(ship);
-		Rpc(nameof(RpcAddShip), Serialize.ToBytes(ship));
-	}
-
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void RpcAddShip(byte[] data)
-	{
-		Ships.Add(Serialize.FromBytes<ShipResource>(data));
-		EmitSignal(SignalName.ShipUpdate);
+		var result = new List<GrpcSpacetrader.System>();
+		while (await systems.ResponseStream.MoveNext())
+		{
+			result.Add(systems.ResponseStream.Current);
+		}
+		return result;
 	}
 }

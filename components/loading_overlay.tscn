@@ -10,10 +10,6 @@ script/source = "extends PanelContainer
 func set_progress(progress: float, desc: String) -> void:
 	loading_desc.text = desc
 	loading_progress.value = progress
-	
-func complete() -> void:
-	# not intended to be reused, so we can safely delete
-	self.queue_free()
 "
 
 [node name="LoadingOverlay" type="PanelContainer"]
