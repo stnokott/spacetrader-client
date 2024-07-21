@@ -7,6 +7,13 @@
     <RootNamespace>SpaceTraderServer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.27.2" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.63.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.65.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
     <PackageReference Include="Microsoft.Kiota.Abstractions" Version="1.9.8" />
     <PackageReference Include="Microsoft.Kiota.Authentication.Azure" Version="1.1.7" />
     <PackageReference Include="Microsoft.Kiota.Http.HttpClientLibrary" Version="1.9.8" />
@@ -14,5 +21,9 @@
     <PackageReference Include="Microsoft.Kiota.Serialization.Json" Version="1.9.8" />
     <PackageReference Include="Microsoft.Kiota.Serialization.Multipart" Version="1.9.8" />
     <PackageReference Include="Microsoft.Kiota.Serialization.Text" Version="1.9.8" />
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="server.proto" GrpcServices="Client" />
   </ItemGroup>
 </Project>

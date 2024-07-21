@@ -12,9 +12,13 @@ config_version=5
 
 config/name="SpaceTrader"
 config/version="0.0.1"
-run/main_scene="res://start.tscn"
+run/main_scene="res://client.tscn"
 config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Store="*res://scripts/Store.cs"
 
 [debug]
 
@@ -37,6 +41,15 @@ project/assembly_name="SpaceTrader (Server)"
 
 version_control/plugin_name="GitPlugin"
 version_control/autoload_on_startup=true
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[filesystem]
+
+import/blender/enabled=false
+import/fbx/enabled=false
 
 [gui]
 

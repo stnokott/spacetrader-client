@@ -4,14 +4,19 @@
 resource_name = "ship_list"
 script/source = "extends PanelContainer
 
-const ShipResource = preload(\"res://models/ShipResource.cs\")
+const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
 
 @onready var list: ItemList = $ItemList
 
-func clear_ships() -> void:
+func _ready() -> void:
+	Store.FleetUpdate.connect(_on_ships_updated)
+	
+func _on_ships_updated(ships: Array) -> void:
 	list.clear()
+	for ship: InternalShip in ships:
+		_add_ship(ship)
 
-func add_ship(ship: ShipResource) -> void:
+func _add_ship(ship: InternalShip) -> void:
 	var iconRes: Texture2D
 	match ship.Status:
 		\"DOCKED\":
@@ -26,6 +31,11 @@ func add_ship(ship: ShipResource) -> void:
 "
 
 [node name="ShipList" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 script = SubResource("GDScript_tefi1")
 
