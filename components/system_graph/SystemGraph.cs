@@ -14,8 +14,6 @@ public partial class SystemGraph : PanelContainer
 		OS.LowProcessorUsageMode = true;
 
 		_graph = GetNode<GraphEdit>("GraphEdit");
-		_loadingOverlay = GetNode<PanelContainer>("LoadingOverlay");
-		_loadingLabel = GetNode<Label>("LoadingOverlay/VBoxContainer/Label");
 		_cursorPosLabel = GetNode<Label>("%CursorPosLabel");
 	}
 
@@ -29,17 +27,6 @@ public partial class SystemGraph : PanelContainer
 			var graphMousePos = (localMousePos + _graph.ScrollOffset) / _graph.Zoom;
 			_cursorPosLabel.Text = string.Format("{0:F0}, {1:F0}", graphMousePos.X, graphMousePos.Y);
 		}
-	}
-
-	private void ShowLoadingOverlay(string text)
-	{
-		_loadingLabel.Text = text;
-		_loadingOverlay.Show();
-	}
-
-	private void HideLoadingOverlay()
-	{
-		_loadingOverlay.Hide();
 	}
 
 	public async void OnGraphUpdateTimer()
