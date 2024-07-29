@@ -1,11 +1,39 @@
-[gd_scene load_steps=3 format=3 uid="uid://c1e160guehn6p"]
+[gd_scene load_steps=5 format=3 uid="uid://c1e160guehn6p"]
 
 [ext_resource type="Script" path="res://components/system_graph/SystemNode.cs" id="1_gklfw"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qbw0y"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vke6l"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 8
+border_width_top = 4
+border_width_right = 8
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dt1mu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ppv5m"]
 
 [node name="SystemNode" type="GraphNode"]
-theme_override_styles/panel = SubResource("StyleBoxEmpty_qbw0y")
+offset_right = 68.0
+offset_bottom = 42.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vke6l")
+theme_override_styles/titlebar = SubResource("StyleBoxEmpty_dt1mu")
+theme_override_styles/titlebar_selected = SubResource("StyleBoxEmpty_ppv5m")
 draggable = false
-title = "!SYSTEM"
+slot/0/left_enabled = false
+slot/0/left_type = 0
+slot/0/left_color = Color(1, 1, 1, 1)
+slot/0/left_icon = null
+slot/0/right_enabled = false
+slot/0/right_type = 0
+slot/0/right_color = Color(1, 1, 1, 1)
+slot/0/right_icon = null
+slot/0/draw_stylebox = true
 script = ExtResource("1_gklfw")
+
+[node name="SystemName" type="Label" parent="."]
+layout_mode = 2
+text = "!SYSTEM"
+horizontal_alignment = 1
