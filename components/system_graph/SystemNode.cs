@@ -1,6 +1,5 @@
 using Godot;
 
-[Tool]
 public partial class SystemNode : GraphNode
 {
 	private Label _systemNameLabel;

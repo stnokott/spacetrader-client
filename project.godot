@@ -39,12 +39,17 @@ project/assembly_name="SpaceTrader (Server)"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
 
 [filesystem]
 
 import/blender/enabled=false
 import/fbx/enabled=false
+
+[gdunit4]
+
+settings/test/test_discovery=true
+ui/toolbar/run_overall=true
 
 [gui]
 
