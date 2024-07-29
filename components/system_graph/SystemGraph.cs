@@ -1,6 +1,4 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public partial class SystemGraph : PanelContainer
@@ -8,14 +6,29 @@ public partial class SystemGraph : PanelContainer
 	private GraphEdit _graph;
 	private PanelContainer _loadingOverlay;
 	private Label _loadingLabel;
+	private Label _cursorPosLabel;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		OS.LowProcessorUsageMode = true;
+
 		_graph = GetNode<GraphEdit>("GraphEdit");
 		_loadingOverlay = GetNode<PanelContainer>("LoadingOverlay");
 		_loadingLabel = GetNode<Label>("LoadingOverlay/VBoxContainer/Label");
+		_cursorPosLabel = GetNode<Label>("%CursorPosLabel");
+	}
+
+	public override void _Process(double delta)
+	{
+		// display mouse position in graph as coordinates
+		var localMousePos = _graph.GetLocalMousePosition();
+		// only update when mouse is inside of graph rect
+		if (localMousePos >= Vector2.Zero && localMousePos <= _graph.Size)
+		{
+			var graphMousePos = (localMousePos + _graph.ScrollOffset) / _graph.Zoom;
+			_cursorPosLabel.Text = string.Format("{0:F0}, {1:F0}", graphMousePos.X, graphMousePos.Y);
+		}
 	}
 
 	private void ShowLoadingOverlay(string text)

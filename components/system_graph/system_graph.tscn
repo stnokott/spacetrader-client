@@ -25,6 +25,25 @@ show_arrange_button = false
 wait_time = 2.0
 autostart = true
 
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 8
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 8
+
+[node name="CursorPosLabel" type="Label" parent="Panel/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+theme_type_variation = &"LabelLowImportance"
+text = "0, 0"
+
 [node name="LoadingOverlay" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 2
