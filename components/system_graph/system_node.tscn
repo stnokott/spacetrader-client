@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://c1e160guehn6p"]
+
+[ext_resource type="Script" path="res://components/system_graph/SystemNode.cs" id="1_gklfw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qbw0y"]
+
+[node name="SystemNode" type="GraphNode"]
+theme_override_styles/panel = SubResource("StyleBoxEmpty_qbw0y")
+draggable = false
+title = "!SYSTEM"
+script = ExtResource("1_gklfw")

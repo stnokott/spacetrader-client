@@ -69,14 +69,13 @@ public partial class SystemGraph : PanelContainer
 		}
 	}
 
+	private static readonly PackedScene systemNodeScene = GD.Load<PackedScene>("res://components/system_graph/system_node.tscn");
+
 	private void AddSystemNode(GrpcSpacetrader.System system)
 	{
-		var node = new GraphNode
-		{
-			Title = system.Id,
-			PositionOffset = new Vector2(system.X, system.Y) / UNITS_PER_PIXEL,
-			Draggable = false
-		};
+		var node = systemNodeScene.Instantiate<SystemNode>();
+		node.Title = system.Id;
+		node.PositionOffset = new Vector2(system.X, system.Y) / UNITS_PER_PIXEL;
 		_graph.AddChild(node);
 	}
 
