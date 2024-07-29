@@ -1,26 +1,40 @@
-[gd_scene load_steps=5 format=3 uid="uid://c1e160guehn6p"]
+[gd_scene load_steps=7 format=3 uid="uid://c1e160guehn6p"]
 
 [ext_resource type="Script" path="res://components/system_graph/SystemNode.cs" id="1_gklfw"]
+[ext_resource type="Texture2D" uid="uid://dhhwxy20rco54" path="res://textures/ship_generic.png" id="2_rdvea"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vke6l"]
-bg_color = Color(0, 0, 0, 1)
-border_width_left = 8
-border_width_top = 4
-border_width_right = 8
-border_width_bottom = 4
-border_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pnkmf"]
+bg_color = Color(0.197937, 0.197938, 0.197937, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.32, 0.32, 0.32, 1)
 corner_detail = 1
+anti_aliasing = false
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dt1mu"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7i8iq"]
+bg_color = Color(0.360784, 0.360784, 0.360784, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.360784, 0.360784, 0.360784, 1)
+corner_detail = 1
+anti_aliasing = false
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ppv5m"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_22dpd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_703vc"]
 
 [node name="SystemNode" type="GraphNode"]
-offset_right = 68.0
-offset_bottom = 42.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_vke6l")
-theme_override_styles/titlebar = SubResource("StyleBoxEmpty_dt1mu")
-theme_override_styles/titlebar_selected = SubResource("StyleBoxEmpty_ppv5m")
+offset_right = 84.0
+offset_bottom = 50.0
+pivot_offset = Vector2(44, 45.5)
+theme_override_styles/panel = SubResource("StyleBoxFlat_pnkmf")
+theme_override_styles/panel_selected = SubResource("StyleBoxFlat_7i8iq")
+theme_override_styles/titlebar = SubResource("StyleBoxEmpty_22dpd")
+theme_override_styles/titlebar_selected = SubResource("StyleBoxEmpty_703vc")
 draggable = false
 slot/0/left_enabled = false
 slot/0/left_type = 0
@@ -33,7 +47,39 @@ slot/0/right_icon = null
 slot/0/draw_stylebox = true
 script = ExtResource("1_gklfw")
 
-[node name="SystemName" type="Label" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="SystemNameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "!SYSTEM"
 horizontal_alignment = 1
+
+[node name="ShipsInSystemHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/ShipsInSystemHBox"]
+layout_mode = 2
+texture = ExtResource("2_rdvea")
+stretch_mode = 2
+
+[node name="TextureRect2" type="TextureRect" parent="MarginContainer/VBoxContainer/ShipsInSystemHBox"]
+layout_mode = 2
+texture = ExtResource("2_rdvea")
+stretch_mode = 2
+
+[node name="TextureRect3" type="TextureRect" parent="MarginContainer/VBoxContainer/ShipsInSystemHBox"]
+layout_mode = 2
+texture = ExtResource("2_rdvea")
+stretch_mode = 2

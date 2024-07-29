@@ -71,14 +71,12 @@ public partial class SystemGraph : PanelContainer
 
 	private void AddSystemNode(GrpcSpacetrader.System system)
 	{
-		/*
-		var node = SystemNode.New(
+		SystemNode.Add(
+			_graph,
 			system.Id,
-			new Vector2(system.X, system.Y) / UNITS_PER_PIXEL
+			new Vector2(system.X, system.Y) / UNITS_PER_PIXEL,
+			Store.Instance.GetNumShipsInSystem(system)
 		);
-		_graph.AddChild(node);
-		*/
-		SystemNode.Add(_graph, system.Id, new Vector2(system.X, system.Y) / UNITS_PER_PIXEL);
 	}
 
 	private void ClearSystemNodes()

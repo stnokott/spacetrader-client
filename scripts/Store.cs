@@ -87,4 +87,9 @@ public partial class Store : Node
 		}
 		return result;
 	}
+
+	public int GetNumShipsInSystem(GrpcSpacetrader.System system)
+	{
+		return Ships.Count((ship) => ship.CurrentLocation.System == system.Id);
+	}
 }
