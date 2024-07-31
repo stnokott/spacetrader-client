@@ -16,10 +16,15 @@ public class StoreTest
 		};
 	}
 
+	[AfterTest]
+	public void Teardown()
+	{
+		Store.Instance.Ships = new List<GrpcSpacetrader.Ship>();
+	}
+
 	[TestCase]
 	public void GetNumShipsInSystem()
 	{
-		// SETUP
 		Store.Instance.Ships = new List<GrpcSpacetrader.Ship>{
 			MakeShipWithLocation("ABC-123"),
 			MakeShipWithLocation("DEF-456"),

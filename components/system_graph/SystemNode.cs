@@ -39,6 +39,13 @@ public partial class SystemNode : GraphNode
 		}
 	}
 
+#if TOOLS
+	public HBoxContainer GetShipsHBox()
+	{
+		return _shipsInSystemHBox;
+	}
+#endif
+
 	private static readonly PackedScene _systemNodeScene = GD.Load<PackedScene>("res://components/system_graph/system_node.tscn");
 
 

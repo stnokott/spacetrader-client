@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 public partial class SystemGraph : PanelContainer
 {
-	private GraphEdit _graph;
+	public GraphEdit _graph;
 	private PanelContainer _loadingOverlay;
 	private Label _loadingLabel;
 	private Label _cursorPosLabel;
@@ -69,7 +69,7 @@ public partial class SystemGraph : PanelContainer
 		}
 	}
 
-	private void AddSystemNode(GrpcSpacetrader.System system)
+	public void AddSystemNode(GrpcSpacetrader.System system)
 	{
 		SystemNode.Add(
 			_graph,
