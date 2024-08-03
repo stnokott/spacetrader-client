@@ -1,32 +1,32 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public partial class SystemGraph : PanelContainer
 {
-	private GraphEdit _graph;
+	public GraphEdit _graph;
 	private PanelContainer _loadingOverlay;
 	private Label _loadingLabel;
+	private Label _cursorPosLabel;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		OS.LowProcessorUsageMode = true;
+
 		_graph = GetNode<GraphEdit>("GraphEdit");
-		_loadingOverlay = GetNode<PanelContainer>("LoadingOverlay");
-		_loadingLabel = GetNode<Label>("LoadingOverlay/VBoxContainer/Label");
+		_cursorPosLabel = GetNode<Label>("%CursorPosLabel");
 	}
 
-	private void ShowLoadingOverlay(string text)
+	public override void _Process(double delta)
 	{
-		_loadingLabel.Text = text;
-		_loadingOverlay.Show();
-	}
-
-	private void HideLoadingOverlay()
-	{
-		_loadingOverlay.Hide();
+		// display mouse position in graph as coordinates
+		var localMousePos = _graph.GetLocalMousePosition();
+		// only update when mouse is inside of graph rect
+		if (localMousePos >= Vector2.Zero && localMousePos <= _graph.Size)
+		{
+			var graphMousePos = (localMousePos + _graph.ScrollOffset) / _graph.Zoom;
+			_cursorPosLabel.Text = string.Format("{0:F0}, {1:F0}", graphMousePos.X, graphMousePos.Y);
+		}
 	}
 
 	public async void OnGraphUpdateTimer()
@@ -69,15 +69,14 @@ public partial class SystemGraph : PanelContainer
 		}
 	}
 
-	private void AddSystemNode(GrpcSpacetrader.System system)
+	public void AddSystemNode(GrpcSpacetrader.System system)
 	{
-		var node = new GraphNode
-		{
-			Title = system.Id,
-			PositionOffset = new Vector2(system.X, system.Y) / UNITS_PER_PIXEL,
-			Draggable = false
-		};
-		_graph.AddChild(node);
+		SystemNode.Add(
+			_graph,
+			system.Id,
+			new Vector2(system.X, system.Y) / UNITS_PER_PIXEL,
+			Store.Instance.GetNumShipsInSystem(system)
+		);
 	}
 
 	private void ClearSystemNodes()
