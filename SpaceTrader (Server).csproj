@@ -26,6 +26,9 @@
     <PackageReference Include="gdUnit4.api" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="server.proto" GrpcServices="Client" />
+    <Protobuf Include="scripts/rpc/galaxy.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/ship.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/trade.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/server.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
   </ItemGroup>
 </Project>
