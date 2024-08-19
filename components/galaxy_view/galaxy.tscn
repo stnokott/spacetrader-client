@@ -1,0 +1,151 @@
+[gd_scene load_steps=8 format=3 uid="uid://bke63xo1r20ih"]
+
+[ext_resource type="Script" path="res://components/galaxy_view/Galaxy.cs" id="1_r7la6"]
+[ext_resource type="Texture2D" uid="uid://ml8wkvjv2ksn" path="res://textures/galaxy/Nebula Aqua-Pink.png" id="2_3d1ie"]
+[ext_resource type="Texture2D" uid="uid://d24heshu68f5y" path="res://textures/galaxy/Stars Small_2.png" id="4_dpr23"]
+[ext_resource type="Texture2D" uid="uid://dw1bb3cu5v5ia" path="res://textures/galaxy/Stars Small_1.png" id="5_w4cjl"]
+[ext_resource type="Texture2D" uid="uid://cfr75r4phrcd0" path="res://textures/galaxy/Stars-Big_1_1_PC.png" id="6_5pf22"]
+[ext_resource type="Texture2D" uid="uid://ci8wrq0pep6bj" path="res://textures/galaxy/Stars-Big_1_2_PC.png" id="6_waa20"]
+
+[sub_resource type="GDScript" id="GDScript_5i42v"]
+resource_name = "pan_camera"
+script/source = "extends Camera2D
+
+@onready
+var lblMousePos: Label = %LabelMousePos
+
+signal viewport_changed()
+
+func _ready() -> void:
+	pass
+	
+const zoomSpeed: float = 0.08
+const maxZoom: float = 2.0
+const minZoom: float = 0.9
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and Input.is_action_pressed(\"ui_pan\"):
+		position -= event.relative / zoom
+		# TODO: add position limit (via self.limit_*)
+	elif event is InputEventMouseButton:
+		if Input.is_action_just_pressed(\"ui_pan\"):
+			self.position_smoothing_enabled = false
+			position = self.get_screen_center_position() # to prevent snaps during smooting
+		elif Input.is_action_just_released(\"ui_pan\"):
+			self.position_smoothing_enabled = true
+			viewport_changed.emit()
+		elif Input.is_action_pressed(\"ui_zoom_in\"):
+			zoom += Vector2(zoomSpeed, zoomSpeed)
+		elif Input.is_action_pressed(\"ui_zoom_out\"):
+			zoom -= Vector2(zoomSpeed, zoomSpeed)
+		elif Input.is_action_pressed(\"ui_click\") and event.pressed and event.double_click:
+			self.position = get_global_mouse_position()
+		zoom = clamp(zoom, Vector2(minZoom, minZoom), Vector2(maxZoom, maxZoom))
+
+func _process(delta: float) -> void:
+	pass
+
+func _update_position_labels() -> void:
+	if not lblMousePos:
+		return
+	
+	var vp: Vector2 = self.get_viewport_rect().size
+	var min: Vector2 = self.position - (vp/2)
+	var max: Vector2 = self.position + (vp/2)
+	var mousePos: Vector2 = get_global_mouse_position()
+	var mouseInside = mousePos.x >= min.x and mousePos.y >= min.y and mousePos.x <= max.x and mousePos.y <= max.y
+
+	if mouseInside:
+		lblMousePos.text = \"%d, %d\" % [mousePos.x, mousePos.y]
+"
+
+[node name="Galaxy" type="Node2D"]
+script = ExtResource("1_r7la6")
+
+[node name="Viewport" type="Camera2D" parent="."]
+unique_name_in_owner = true
+position_smoothing_enabled = true
+script = SubResource("GDScript_5i42v")
+
+[node name="UILayer" type="CanvasLayer" parent="Viewport"]
+
+[node name="PanelContainer" type="PanelContainer" parent="Viewport/UILayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -27.0
+offset_right = 45.0
+grow_vertical = 0
+size_flags_vertical = 8
+theme_type_variation = &"OpaquePanelContainer"
+
+[node name="MarginContainer" type="MarginContainer" parent="Viewport/UILayer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="LabelMousePos" type="Label" parent="Viewport/UILayer/PanelContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"LabelLowImportance"
+text = "0, 0"
+
+[node name="UIUpdateTimer" type="Timer" parent="Viewport/UILayer"]
+unique_name_in_owner = true
+wait_time = 0.25
+autostart = true
+
+[node name="ParallaxBackground" type="Node2D" parent="."]
+position = Vector2(400, 300)
+
+[node name="ParallaxBackground" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.3, 0.3)
+repeat_size = Vector2(1024, 1024)
+
+[node name="Nebula" type="Sprite2D" parent="ParallaxBackground/ParallaxBackground"]
+texture = ExtResource("2_3d1ie")
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxBackground"]
+texture = ExtResource("5_w4cjl")
+
+[node name="ParallaxStarsMany1" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.4, 0.4)
+repeat_size = Vector2(1024, 1024)
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany1"]
+texture = ExtResource("4_dpr23")
+
+[node name="ParallaxStarsMany2" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.5, 0.5)
+repeat_size = Vector2(1024, 1024)
+screen_offset = Vector2(100, 100)
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany2"]
+texture = ExtResource("5_w4cjl")
+
+[node name="ParallaxStarsFew1" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.6, 0.6)
+repeat_size = Vector2(1024, 1024)
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew1"]
+texture = ExtResource("6_5pf22")
+
+[node name="ParallaxStarsFew2" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.7, 0.7)
+repeat_size = Vector2(1024, 1024)
+screen_offset = Vector2(150, 150)
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew2"]
+texture = ExtResource("6_waa20")
+
+[node name="ParallaxStarsFew3" type="Parallax2D" parent="ParallaxBackground"]
+scroll_scale = Vector2(0.8, 0.8)
+repeat_size = Vector2(1024, 1024)
+
+[node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew3"]
+texture = ExtResource("6_5pf22")
+
+[connection signal="viewport_changed" from="Viewport" to="." method="OnCameraViewportChanged" flags=3]
+[connection signal="timeout" from="Viewport/UILayer/UIUpdateTimer" to="Viewport" method="_update_position_labels"]

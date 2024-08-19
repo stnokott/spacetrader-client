@@ -6,13 +6,17 @@ script/source = "extends PanelContainer
 
 const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
 
-@onready var list: ItemList = $ItemList
+@onready var container: VBoxContainer = %ShipContainer
 
 func _ready() -> void:
 	Store.FleetUpdate.connect(_on_ships_updated)
 	
 func _on_ships_updated(ships: Array) -> void:
-	list.clear()
+ 	# clear children
+	for child in container.get_children():
+		container.remove_child(child)
+		child.queue_free()
+	# add ships
 	for ship: InternalShip in ships:
 		_add_ship(ship)
 
@@ -27,7 +31,14 @@ func _add_ship(ship: InternalShip) -> void:
 			iconRes = load(\"res://textures/ship_status/in_transit.tres\")
 		_:
 			iconRes = load(\"res://textures/ship_status/unknown.tres\")
-	list.add_item(ship.Name, iconRes)
+	var shipHBox = HBoxContainer.new()
+	var icon = TextureRect.new()
+	icon.texture = iconRes
+	shipHBox.add_child(icon)
+	var label = Label.new()
+	label.text = ship.Name
+	shipHBox.add_child(label)
+	container.add_child(shipHBox)
 "
 
 [node name="ShipList" type="PanelContainer"]
@@ -39,7 +50,9 @@ grow_vertical = 2
 size_flags_horizontal = 3
 script = SubResource("GDScript_tefi1")
 
-[node name="ItemList" type="ItemList" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
-theme_override_constants/v_separation = 5
-icon_scale = 1.5
+
+[node name="ShipContainer" type="VBoxContainer" parent="ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2

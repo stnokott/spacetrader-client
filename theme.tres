@@ -1,13 +1,31 @@
-[gd_resource type="Theme" load_steps=4 format=3 uid="uid://dhh2viiaa0sj0"]
+[gd_resource type="Theme" load_steps=6 format=3 uid="uid://dhh2viiaa0sj0"]
 
 [ext_resource type="FontFile" uid="uid://cfh7c6p7ovw5o" path="res://SourceCodePro-Bold.ttf" id="1_gkxl0"]
 [ext_resource type="FontFile" uid="uid://biorq2yla0tlg" path="res://SourceCodePro-Regular.ttf" id="2_0no2s"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k1kwr"]
+bg_color = Color(0.151276, 0.151276, 0.151276, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xgeh3"]
+bg_color = Color(0.151276, 0.151276, 0.151276, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.529067, 0.529067, 0.529066, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_detail = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cuk7c"]
 bg_color = Color(0.0768358, 0.0768358, 0.0768358, 1)
 
 [resource]
 default_font = ExtResource("2_0no2s")
+GalaxySystemPanel/base_type = &"PanelContainer"
+GalaxySystemPanel/styles/panel = SubResource("StyleBoxFlat_k1kwr")
+GalaxySystemPanelHeader/base_type = &"PanelContainer"
+GalaxySystemPanelHeader/styles/panel = SubResource("StyleBoxFlat_xgeh3")
 LabelBold/base_type = &"Label"
 LabelBold/fonts/font = ExtResource("1_gkxl0")
 LabelLowImportance/base_type = &"Label"
