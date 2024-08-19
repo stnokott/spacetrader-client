@@ -15,6 +15,8 @@ public partial class Galaxy : Node2D
 	public override void _Ready()
 	{
 		_camera = GetNode<Camera2D>("%Viewport");
+
+		CallDeferred(MethodName.OnCameraViewportChanged);
 	}
 
 	public async void OnCameraViewportChanged()

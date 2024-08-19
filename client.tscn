@@ -88,5 +88,3 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
-
-[connection signal="size_changed" from="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport" to="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport/Galaxy" method="OnCameraViewportChanged" flags=3]
