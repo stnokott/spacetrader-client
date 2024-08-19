@@ -5,6 +5,8 @@ resource_name = "ship_list"
 script/source = "extends PanelContainer
 
 const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
+const shipItemScene: PackedScene = preload(\"res://components/shiplist/ship_list_item.tscn\")
+const ShipListItem = preload(\"res://components/shiplist/ship_list_item.gd\")
 
 @onready var container: VBoxContainer = %ShipContainer
 
@@ -21,24 +23,9 @@ func _on_ships_updated(ships: Array) -> void:
 		_add_ship(ship)
 
 func _add_ship(ship: InternalShip) -> void:
-	var iconRes: Texture2D
-	match ship.Status:
-		\"DOCKED\":
-			iconRes = load(\"res://textures/ship_status/docked.tres\")
-		\"IN_ORBIT\":
-			iconRes = load(\"res://textures/ship_status/in_orbit.tres\")
-		\"IN_TRANSIT\":
-			iconRes = load(\"res://textures/ship_status/in_transit.tres\")
-		_:
-			iconRes = load(\"res://textures/ship_status/unknown.tres\")
-	var shipHBox = HBoxContainer.new()
-	var icon = TextureRect.new()
-	icon.texture = iconRes
-	shipHBox.add_child(icon)
-	var label = Label.new()
-	label.text = ship.Name
-	shipHBox.add_child(label)
-	container.add_child(shipHBox)
+	var shipNode: ShipListItem = shipItemScene.instantiate()
+	container.add_child(shipNode)
+	shipNode.set_ship(ship)
 "
 
 [node name="ShipList" type="PanelContainer"]

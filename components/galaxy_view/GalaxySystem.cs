@@ -15,12 +15,12 @@ public partial class GalaxySystem : Node2D
 		_shipCountLabel = GetNode<Label>("%ShipCountLabel");
 	}
 
-	public void SetData(string systemName, int shipCount)
+	public void SetSystem(GrpcSpacetrader.System system, int shipCountInSys)
 	{
-		_systemNameLabel.Text = systemName;
-		if (shipCount > 0)
+		_systemNameLabel.Text = system.Id;
+		if (shipCountInSys > 0)
 		{
-			_shipCountLabel.Text = shipCount.ToString();
+			_shipCountLabel.Text = shipCountInSys.ToString();
 			_shipCountContainer.Visible = true;
 		}
 		else
