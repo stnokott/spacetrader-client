@@ -1,0 +1,339 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+import "galaxy.proto";
+import "trade.proto";
+
+package proto;
+
+option go_package = "github.com/stnokott/spacetrader-server/internal/proto";
+option csharp_namespace = "GrpcSpacetrader";
+
+message Ship {
+	string id = 1;
+	string name = 2;
+	
+	enum Role {
+		UNKNOWN_SHIPROLE = 0;
+		FABRICATOR = 1;
+		HARVESTER = 2;
+		HAULER = 3;
+		INTERCEPTOR = 4;
+		EXCAVATOR = 5;
+		TRANSPORT = 6;
+		REPAIR = 7;
+		SURVEYOR = 8;
+		COMMAND = 9;
+		CARRIER = 10;
+		PATROL = 11;
+		SATELLITE = 12;
+		EXPLORER = 13;
+		REFINERY = 14;
+	}
+	Role role = 3;
+
+	message Location {
+		string system = 1;
+		string waypoint = 2;
+	}
+	Location currentLocation = 4;
+
+	message Route {
+		// The destination or departure of a ships nav route.
+		WaypointBase origin = 1;
+		// The destination or departure of a ships nav route.
+		WaypointBase destination = 2;
+		// The date time of the ship's departure.
+		google.protobuf.Timestamp departureTime = 3;
+		// The date time of the ship's arrival. If the ship is in-transit, this is the expected time of arrival.
+		google.protobuf.Timestamp arrivalTime = 4;
+	}
+	Route route = 5;
+
+	enum FlightStatus {
+		UNKNOWN_FLIGHTSTATUS = 0;
+		DOCKED = 1;
+		IN_ORBIT = 2;
+		IN_TRANSIT = 3;
+	}
+	FlightStatus status = 6;
+
+	enum FlightMode {
+		UNKNOWN_FLIGHTMODE = 0;
+		CRUISE = 1;
+		DRIFT = 2;
+		STEALTH = 3;
+		BURN = 4;
+	}
+	FlightMode flightMode = 7;
+
+	message Crew {
+		// The minimum number of crew members required to maintain the ship.
+		int32 required = 1;
+		// The maximum number of crew members the ship can support.
+		int32 capacity = 2;
+		// The current number of crew members on the ship.
+		int32 current = 3;
+
+		enum Rotation {
+			// Improves the ship's performance.
+			STRICT = 0;
+			// Improves the crew's morale.
+			RELAXED = 1;
+		}
+		// The rotation of crew shifts.
+		// A stricter shift improves the ship's performance. A more relaxed shift improves the crew's morale.
+		Rotation rotation = 4;
+
+		// A rough measure of the crew's morale (0-100).
+		// A higher morale means the crew is happier and more productive.
+		// A lower morale means the ship is more prone to accidents.
+		int32 morale = 5;
+
+		// The amount of credits per crew member paid per hour. Wages are paid when a ship docks at a civilized waypoint.
+		int32 wages = 6;
+	}
+	Crew crew = 8;
+
+	// The frame of the ship.
+	// The frame determines the number of modules and mounting points of the ship, as well as base fuel capacity.
+	// As the condition of the frame takes more wear, the ship will become more sluggish and less maneuverable.
+	FrameComponent frame = 9;
+
+	// The reactor of the ship. The reactor is responsible for powering the ship's systems and weapons.
+	ReactorComponent reactor = 10;
+
+	// The engine determines how quickly a ship travels between waypoints.
+	EngineComponent engine = 11;
+
+	message Cooldown {
+		// The total duration of the cooldown in seconds.
+		int32 totalSeconds = 1;
+		// The remaining duration of the cooldown in seconds.
+		int32 remainingSeconds = 2;
+		// The date and time when the cooldown expires in ISO 8601 format.
+		optional google.protobuf.Timestamp expiration = 3;
+	}
+	// A cooldown is a period of time in which a ship cannot perform certain actions.
+	Cooldown cooldown = 12;
+
+	// Modules installed in this ship.
+	repeated Module modules = 13;
+
+	// Mounts installed in this ship.
+	repeated Mount mounts = 14;
+
+	message Cargo {
+		// The max number of items that can be stored in the cargo hold.
+		int32 capacity = 1;
+		// The number of items currently stored in the cargo hold.
+		int32 units = 2;
+
+		message InventoryItem {
+			TradeItem type = 1;
+			string name = 2;
+			string description = 3;
+			// The number of units of the cargo item.
+			int32 units = 4;
+		}
+		repeated InventoryItem inventory = 3;
+	}
+	Cargo cargo = 15;
+
+	message Fuel {
+		// The maximum amount of fuel the ship's tanks can hold.
+		int32 capacity = 1;
+		// The current amount of fuel in the ship's tanks.
+		int32 current = 2;
+		
+		message Consumption {
+			// The amount of fuel consumed by the most recent transit or action.
+			int32 amount = 1;
+			// The time at which the fuel was consumed.
+			google.protobuf.Timestamp timestamp = 2;
+		}
+		// An object that only shows up when an action has consumed fuel in the process.
+		// Shows the fuel consumption data.
+		optional Consumption consumed = 3;
+	}
+	Fuel fuel = 16;
+}
+
+// The requirements for installation on a ship.
+message ModuleRequirements {
+	optional int32 power = 1;
+	optional int32 crew = 2;
+	optional int32 slots = 3;
+}
+
+message ModuleDegradable {
+	// The repairable condition of a component (0-1).
+	// A value of 0 indicates the component needs significant repairs,
+	// while a value of 1 indicates the component is in near perfect condition.
+	// As the condition of a component is repaired, the overall integrity of the component decreases.
+	//
+	// Using double (instead of float which would align with the API) to simplify conversion between API and protobuf.
+	double condition = 1;
+	// The overall integrity of the component (0-1), which determines the performance of the component.
+	// A value of 0 indicates that the component is almost completely degraded,
+	// while a value of 1 indicates that the component is in near perfect condition.
+	// The integrity of the component is non-repairable, and represents permanent wear over time.
+	//
+	// Using double (instead of float which would align with the API) to simplify conversion between API and protobuf.
+	double integrity = 2;
+}
+
+message FrameComponent {
+	string name = 1;
+	string description = 2;
+	ModuleRequirements requirements = 3;
+
+	enum Type {
+		FRAME_UNKNOWN = 0;
+		FRAME_PROBE = 1;
+		FRAME_DRONE = 2;
+		FRAME_INTERCEPTOR = 3;
+		FRAME_RACER = 4;
+		FRAME_FIGHTER = 5;
+		FRAME_FRIGATE = 6;
+		FRAME_SHUTTLE = 7;
+		FRAME_EXPLORER = 8;
+		FRAME_MINER = 9;
+		FRAME_LIGHT_FREIGHTER = 10;
+		FRAME_HEAVY_FREIGHTER = 11;
+		FRAME_TRANSPORT = 12;
+		FRAME_DESTROYER = 13;
+		FRAME_CRUISER = 14;
+		FRAME_CARRIER = 15;
+	}
+	Type type = 4;
+
+	ModuleDegradable degradation = 5;
+
+	// The amount of slots that can be dedicated to modules installed in the ship.
+	// Each installed module take up a number of slots, and once there are no more slots, no new modules can be installed.
+	int32 moduleSlots = 6;
+	// The amount of slots that can be dedicated to mounts installed in the ship.
+	// Each installed mount takes up a number of points, and once there are no more points remaining,
+	// no new mounts can be installed.
+	int32 mountingPoints = 7;
+	// The maximum amount of fuel that can be stored in this ship.
+	// When refueling, the ship will be refueled to this amount.
+	int32 fuelCapacity = 8;
+}
+
+message ReactorComponent {
+	string name = 1;
+	string description = 2;
+	ModuleRequirements requirements = 3;
+
+	enum Type {
+		REACTOR_UNKNOWN = 0;
+		REACTOR_SOLAR_I = 1;
+		REACTOR_FUSION_I = 2;
+		REACTOR_FISSION_I = 3;
+		REACTOR_CHEMICAL_I = 4;
+		REACTOR_ANTIMATTER_I = 5;
+	}
+	Type type = 4;
+
+	ModuleDegradable degradation = 5;
+
+	// The amount of power provided by this reactor (>=1).
+	// The more power a reactor provides to the ship, the lower the cooldown it gets
+	// when using a module or mount that taxes the ship's power.
+	int32 powerOutput = 6;
+}
+
+message EngineComponent {
+	string name = 1;
+	string description = 2;
+	ModuleRequirements requirements = 3;
+
+	enum Type {
+		ENGINE_UNKNOWN = 0;
+		ENGINE_IMPULSE_DRIVE_I = 1;
+		ENGINE_ION_DRIVE_I = 2;
+		ENGINE_ION_DRIVE_II = 3;
+		ENGINE_HYPER_DRIVE_I = 4;
+	}
+	Type type = 4;
+
+	ModuleDegradable degradation = 5;
+
+	// The speed stat of this engine (>=1).
+	// The higher the speed, the faster a ship can travel from one point to another.
+	// Reduces the time of arrival when navigating the ship.
+	int32 speed = 6;
+}
+
+message Module {
+	string name = 1;
+	string description = 2;
+	ModuleRequirements requirements = 3;
+
+	enum Type {
+		MODULE_UNKNOWN = 0;
+		MODULE_MINERAL_PROCESSOR_I = 1;
+		MODULE_GAS_PROCESSOR_I = 2;
+		MODULE_CARGO_HOLD_I = 3;
+		MODULE_CARGO_HOLD_II = 4;
+		MODULE_CARGO_HOLD_III = 5;
+		MODULE_CREW_QUARTERS_I = 6;
+		MODULE_ENVOY_QUARTERS_I = 7;
+		MODULE_PASSENGER_CABIN_I = 8;
+		MODULE_MICRO_REFINERY_I = 9;
+		MODULE_ORE_REFINERY_I = 10;
+		MODULE_FUEL_REFINERY_I = 11;
+		MODULE_SCIENCE_LAB_I = 12;
+		MODULE_JUMP_DRIVE_I = 13;
+		MODULE_JUMP_DRIVE_II = 14;
+		MODULE_JUMP_DRIVE_III = 15;
+		MODULE_WARP_DRIVE_I = 16;
+		MODULE_WARP_DRIVE_II = 17;
+		MODULE_WARP_DRIVE_III = 18;
+		MODULE_SHIELD_GENERATOR_I = 19;
+		MODULE_SHIELD_GENERATOR_II = 20;
+	}
+	Type type = 4;
+
+	// Modules that provide capacity, such as cargo hold or crew quarters will
+	// show this value to denote how much of a bonus the module grants.
+	optional int32 capacity = 5;
+	// Modules that have a range will such as a sensor array show this value to
+	// denote how far can the module reach with its capabilities.
+	optional int32 range = 6;
+}
+
+message Mount {
+	string name = 1;
+	optional string description = 2;
+	ModuleRequirements requirements = 3;
+
+	enum Type {
+		MOUNT_UNKNOWN = 0;
+		MOUNT_GAS_SIPHON_I = 1;
+		MOUNT_GAS_SIPHON_II = 2;
+		MOUNT_GAS_SIPHON_III = 3;
+		MOUNT_SURVEYOR_I = 4;
+		MOUNT_SURVEYOR_II = 5;
+		MOUNT_SURVEYOR_III = 6;
+		MOUNT_SENSOR_ARRAY_I = 7;
+		MOUNT_SENSOR_ARRAY_II = 8;
+		MOUNT_SENSOR_ARRAY_III = 9;
+		MOUNT_MINING_LASER_I = 10;
+		MOUNT_MINING_LASER_II = 11;
+		MOUNT_MINING_LASER_III = 12;
+		MOUNT_LASER_CANNON_I = 13;
+		MOUNT_MISSILE_LAUNCHER_I = 14;
+		MOUNT_TURRET_I = 15;
+	}
+	Type type = 4;
+
+	// Mounts that have this value, such as mining lasers, denote how powerful this mount's capabilities are.
+	optional int32 strength = 5;
+
+	// Mounts that have this value denote what goods can be produced from using the mount.
+	repeated TradeItem deposits = 6;
+}

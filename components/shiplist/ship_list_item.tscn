@@ -1,0 +1,55 @@
+[gd_scene load_steps=5 format=3 uid="uid://6ttsdbbod87e"]
+
+[ext_resource type="StyleBox" uid="uid://bqcx1n8nl0mv2" path="res://theme/style_box_normal.tres" id="1_1ov7y"]
+[ext_resource type="Texture2D" uid="uid://0dopx10f1odg" path="res://textures/ship_status/docked.tres" id="1_r7cww"]
+[ext_resource type="Script" path="res://components/shiplist/ship_list_item.gd" id="1_wiwcx"]
+[ext_resource type="Texture2D" uid="uid://bsxayicvlalpt" path="res://textures/ship_status/in_orbit.tres" id="3_4pl2h"]
+
+[node name="Panel" type="PanelContainer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 38.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_styles/panel = ExtResource("1_1ov7y")
+script = ExtResource("1_wiwcx")
+
+[node name="ShipListItem" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ShipStatusIcon" type="TextureRect" parent="ShipListItem"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+texture = ExtResource("1_r7cww")
+expand_mode = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ShipListItem"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ShipListItem/MarginContainer"]
+layout_mode = 2
+
+[node name="ShipNameLabel" type="Label" parent="ShipListItem/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 1
+text = "!SHIPNAME"
+vertical_alignment = 1
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="ShipListItem"]
+layout_mode = 2
+size_flags_horizontal = 10
+stretch_mode = 1
+alignment_horizontal = 2
+
+[node name="LocateOnMapButton" type="Button" parent="ShipListItem/AspectRatioContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Locate on Galaxy Map"
+icon = ExtResource("3_4pl2h")
+icon_alignment = 1
+expand_icon = true
