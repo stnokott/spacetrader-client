@@ -2,19 +2,21 @@
 
 [sub_resource type="GDScript" id="GDScript_tefi1"]
 resource_name = "ship_list"
-script/source = "extends PanelContainer
+script/source = "extends VBoxContainer
 
 const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
-const shipItemScene: PackedScene = preload(\"res://components/shiplist/ship_list_item.tscn\")
+const ship_item_scene: PackedScene = preload(\"res://components/shiplist/ship_list_item.tscn\")
 const ShipListItem = preload(\"res://components/shiplist/ship_list_item.gd\")
 
-@onready var container: VBoxContainer = %ShipContainer
+@onready var container: VBoxContainer = %ShipListContainer
 
-func _ready() -> void:
+signal ship_locate_request(ship_name: String)
+
+func _ready() -> void:	
 	Store.FleetUpdate.connect(_on_ships_updated)
 	
 func _on_ships_updated(ships: Array) -> void:
- 	# clear children
+	# clear ships
 	for child in container.get_children():
 		container.remove_child(child)
 		child.queue_free()
@@ -23,23 +25,39 @@ func _on_ships_updated(ships: Array) -> void:
 		_add_ship(ship)
 
 func _add_ship(ship: InternalShip) -> void:
-	var shipNode: ShipListItem = shipItemScene.instantiate()
-	container.add_child(shipNode)
-	shipNode.set_ship(ship)
+	var ship_node: ShipListItem = ship_item_scene.instantiate()
+	container.add_child(ship_node)
+	ship_node.set_ship(ship)
+	ship_node.locate_button_pressed.connect(ship_locate_request.emit.bind(ship.Name)) # bind with ship name
 "
 
-[node name="ShipList" type="PanelContainer"]
+[node name="ShipList" type="VBoxContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
 script = SubResource("GDScript_tefi1")
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"LabelBold"
+text = "Ships"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
+size_flags_vertical = 3
 
-[node name="ShipContainer" type="VBoxContainer" parent="ScrollContainer"]
+[node name="ShipListContainer" type="VBoxContainer" parent="ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0

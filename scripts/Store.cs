@@ -13,7 +13,7 @@ public partial class Store : Node
 	public static Store Instance { get; private set; }
 
 	private Rpc.Client _grpc;
-	public List<Ship> Ships { get; set; } = new List<Ship>();
+	public Dictionary<string, Ship> Ships { get; set; } = new Dictionary<string, Ship>();
 
 	public override void _Ready()
 	{
@@ -90,6 +90,13 @@ public partial class Store : Node
 
 	public int GetNumShipsInSystem(GrpcSpacetrader.System system)
 	{
-		return Ships.Count((ship) => ship.CurrentLocation.System == system.Id);
+		return Ships.Count((kv) => kv.Value.CurrentLocation.System == system.Id);
+	}
+
+	public async Task<Vector2> GetShipCoordinates(string shipName)
+	{
+		// TODO: handle ships in transit
+		var sysCoords = await _grpc.GetShipCoordinatesAsync(new GetShipCoordinatesRequest { ShipName = shipName });
+		return new Vector2(sysCoords.X, sysCoords.Y);
 	}
 }

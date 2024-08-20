@@ -1,7 +1,14 @@
-[gd_resource type="Theme" load_steps=6 format=3 uid="uid://dhh2viiaa0sj0"]
+[gd_resource type="Theme" load_steps=12 format=3 uid="uid://dhh2viiaa0sj0"]
 
 [ext_resource type="FontFile" uid="uid://cfh7c6p7ovw5o" path="res://SourceCodePro-Bold.ttf" id="1_gkxl0"]
 [ext_resource type="FontFile" uid="uid://biorq2yla0tlg" path="res://SourceCodePro-Regular.ttf" id="2_0no2s"]
+[ext_resource type="StyleBox" uid="uid://bqcx1n8nl0mv2" path="res://theme/style_box_normal.tres" id="2_owax0"]
+[ext_resource type="StyleBox" uid="uid://6bqkfo78bque" path="res://theme/style_box_disabled.tres" id="3_4ajdc"]
+[ext_resource type="StyleBox" uid="uid://n7adkcwsu7es" path="res://theme/style_box_hover.tres" id="3_u66fl"]
+[ext_resource type="StyleBox" uid="uid://be8vx7fcmecxk" path="res://theme/style_box_focus.tres" id="4_dhtk8"]
+[ext_resource type="StyleBox" uid="uid://dvhc71rf3gb4w" path="res://theme/style_box_pressed.tres" id="6_ve44b"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0v87j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k1kwr"]
 bg_color = Color(0.151276, 0.151276, 0.151276, 1)
@@ -22,6 +29,7 @@ bg_color = Color(0.0768358, 0.0768358, 0.0768358, 1)
 
 [resource]
 default_font = ExtResource("2_0no2s")
+Button/styles/focus = SubResource("StyleBoxEmpty_0v87j")
 GalaxySystemPanel/base_type = &"PanelContainer"
 GalaxySystemPanel/styles/panel = SubResource("StyleBoxFlat_k1kwr")
 GalaxySystemPanelHeader/base_type = &"PanelContainer"
@@ -36,4 +44,10 @@ MarginContainer/constants/margin_right = 10
 MarginContainer/constants/margin_top = 10
 OpaquePanelContainer/base_type = &"PanelContainer"
 OpaquePanelContainer/styles/panel = SubResource("StyleBoxFlat_cuk7c")
+Panel/styles/panel = ExtResource("2_owax0")
+PanelContainer/styles/disabled = ExtResource("3_4ajdc")
+PanelContainer/styles/focus = ExtResource("4_dhtk8")
+PanelContainer/styles/hover = ExtResource("3_u66fl")
+PanelContainer/styles/panel = ExtResource("2_owax0")
+PanelContainer/styles/pressed = ExtResource("6_ve44b")
 VBoxContainer/constants/separation = 0

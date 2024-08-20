@@ -50,13 +50,16 @@ public class SystemGraphTest
 		// add ships to store
 		for (int i = 0; i < numShipsInSystem; i++)
 		{
-			Store.Instance.Ships.Add(new GrpcSpacetrader.Ship
-			{
-				CurrentLocation = new GrpcSpacetrader.Ship.Types.Location
+			Store.Instance.Ships.Add(
+				string.Format("SHIP-IN-SYSTEM-{0}", i + 1),
+				new GrpcSpacetrader.Ship
 				{
-					System = "SYS-WITH-SHIPS"
+					CurrentLocation = new GrpcSpacetrader.Ship.Types.Location
+					{
+						System = "SYS-WITH-SHIPS"
+					}
 				}
-			});
+			);
 		}
 
 		// add system node without ships

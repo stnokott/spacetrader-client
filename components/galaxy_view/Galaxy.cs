@@ -25,7 +25,7 @@ public partial class Galaxy : Node2D
 	}
 
 	// number of pixels to prefetch in each direction of the viewport
-	private const int PIXEL_PREFETCH = 100;
+	private const int PIXEL_PREFETCH = 300;
 
 	// TODO: automatic refresh
 
@@ -45,8 +45,8 @@ public partial class Galaxy : Node2D
 
 	private Rect2 GetCameraViewportRect()
 	{
-		var cameraSize = GetViewportRect().Size * _camera.Zoom;
-		var cameraRect = new Rect2(_camera.GetScreenCenterPosition() - cameraSize / 2, cameraSize);
+		var cameraSize = _camera.GetViewportRect().Size * _camera.Zoom;
+		var cameraRect = new Rect2(_camera.Position - cameraSize / 2, cameraSize);
 		return cameraRect;
 	}
 
@@ -54,9 +54,9 @@ public partial class Galaxy : Node2D
 	{
 		var node = _systemScene.Instantiate<GalaxySystem>();
 		node.Position = new Vector2(system.X, system.Y);
-		var numShips = Store.Instance.GetNumShipsInSystem(system);
+		var numShipsInSys = Store.Instance.GetNumShipsInSystem(system);
 		AddChild(node);
-		node.SetData(system.Id, numShips);
+		node.SetSystem(system, numShipsInSys);
 	}
 
 	public void ClearSystemNodes()
@@ -69,5 +69,16 @@ public partial class Galaxy : Node2D
 				node.QueueFree();
 			}
 		}
+	}
+
+	public async void ZoomToShip(string shipName)
+	{
+		Vector2 shipCoords = await Store.Instance.GetShipCoordinates(shipName);
+		if (shipCoords.IsEqualApprox(_camera.Position))
+		{
+			return;
+		}
+		_camera.Position = shipCoords;
+		await RefreshSystems();
 	}
 }

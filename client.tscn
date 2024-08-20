@@ -88,3 +88,5 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
+
+[connection signal="ship_locate_request" from="UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList" to="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport/Galaxy" method="ZoomToShip"]

@@ -19,17 +19,16 @@ public class StoreTest
 	[AfterTest]
 	public void Teardown()
 	{
-		Store.Instance.Ships = new List<GrpcSpacetrader.Ship>();
+		Store.Instance.Ships = new Dictionary<string, GrpcSpacetrader.Ship>();
 	}
 
 	[TestCase]
 	public void GetNumShipsInSystem()
 	{
-		Store.Instance.Ships = new List<GrpcSpacetrader.Ship>{
-			MakeShipWithLocation("ABC-123"),
-			MakeShipWithLocation("DEF-456"),
-			MakeShipWithLocation("GHI-789"),
-			MakeShipWithLocation("DEF-456")
+		Store.Instance.Ships = new Dictionary<string, GrpcSpacetrader.Ship>{
+			{"ABC-123", MakeShipWithLocation("ABC-123")},
+			{"DEF-456", MakeShipWithLocation("DEF-456")},
+			{"GHI-789", MakeShipWithLocation("GHI-789")}
 		};
 
 		AssertInt(Store.Instance.GetNumShipsInSystem(new GrpcSpacetrader.System

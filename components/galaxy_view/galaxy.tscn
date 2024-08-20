@@ -29,10 +29,8 @@ func _input(event: InputEvent) -> void:
 		# TODO: add position limit (via self.limit_*)
 	elif event is InputEventMouseButton:
 		if Input.is_action_just_pressed(\"ui_pan\"):
-			self.position_smoothing_enabled = false
 			position = self.get_screen_center_position() # to prevent snaps during smooting
 		elif Input.is_action_just_released(\"ui_pan\"):
-			self.position_smoothing_enabled = true
 			viewport_changed.emit()
 		elif Input.is_action_pressed(\"ui_zoom_in\"):
 			zoom += Vector2(zoomSpeed, zoomSpeed)
@@ -57,6 +55,7 @@ func _update_position_labels() -> void:
 
 	if mouseInside:
 		lblMousePos.text = \"%d, %d\" % [mousePos.x, mousePos.y]
+	
 "
 
 [node name="Galaxy" type="Node2D"]
@@ -65,6 +64,7 @@ script = ExtResource("1_r7la6")
 [node name="Viewport" type="Camera2D" parent="."]
 unique_name_in_owner = true
 position_smoothing_enabled = true
+position_smoothing_speed = 7.0
 script = SubResource("GDScript_5i42v")
 
 [node name="UILayer" type="CanvasLayer" parent="Viewport"]
