@@ -35,11 +35,11 @@ public partial class Galaxy : Node2D
 		// expand viewport to include prefetched pixels
 		cameraViewport = cameraViewport.Grow(PIXEL_PREFETCH);
 
-		var systems = await Store.Instance.GetSystemsInRect(cameraViewport.Position, cameraViewport.End);
+		var result = await Store.Instance.GetSystemsInRect(cameraViewport.Position, cameraViewport.End);
 		ClearSystemNodes();
-		foreach (var system in systems)
+		foreach (var item in result)
 		{
-			AddSystemNode(system);
+			AddSystemNode(item.System, item.ShipCount);
 		}
 	}
 
@@ -50,13 +50,12 @@ public partial class Galaxy : Node2D
 		return cameraRect;
 	}
 
-	public void AddSystemNode(GrpcSpacetrader.System system)
+	public void AddSystemNode(GrpcSpacetrader.System system, int shipCount)
 	{
 		var node = _systemScene.Instantiate<GalaxySystem>();
 		node.Position = new Vector2(system.X, system.Y);
-		var numShipsInSys = Store.Instance.GetNumShipsInSystem(system);
 		AddChild(node);
-		node.SetSystem(system, numShipsInSys);
+		node.SetSystem(system, shipCount);
 	}
 
 	public void ClearSystemNodes()

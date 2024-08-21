@@ -17,7 +17,7 @@ service Spacetrader {
 	rpc GetCurrentAgent(google.protobuf.Empty) returns (Agent);
 	rpc GetFleet(google.protobuf.Empty) returns (Fleet);
 	rpc GetShipCoordinates(GetShipCoordinatesRequest) returns (GetShipCoordinatesResponse);
-	rpc GetSystemsInRect(Rect) returns (stream System);
+	rpc GetSystemsInRect(Rect) returns (stream GetSystemsInRectResponse);
 }
 
 message ServerStatus {
@@ -53,6 +53,14 @@ message Fleet {
 	repeated Ship ships = 1;
 }
 
+message GetShipCountInSystemRequest {
+	string system_name = 1;
+}
+
+message GetShipCountInSystemResponse {
+	int32 n = 1;
+}
+
 message GetShipCoordinatesRequest {
 	string ship_name = 1;
 }
@@ -60,6 +68,11 @@ message GetShipCoordinatesRequest {
 message GetShipCoordinatesResponse {
 	int32 x = 1;
 	int32 y = 2;
+}
+
+message GetSystemsInRectResponse {
+	System system = 1;
+	int32 ship_count = 2;
 }
 
 message Vector {

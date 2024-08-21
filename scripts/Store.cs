@@ -13,7 +13,6 @@ public partial class Store : Node
 	public static Store Instance { get; private set; }
 
 	private Rpc.Client _grpc;
-	public Dictionary<string, Ship> Ships { get; set; } = new Dictionary<string, Ship>();
 
 	public override void _Ready()
 	{
@@ -72,7 +71,7 @@ public partial class Store : Node
 		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));
 	}
 
-	public async Task<List<GrpcSpacetrader.System>> GetSystemsInRect(Vector2I start, Vector2I end)
+	public async Task<List<GetSystemsInRectResponse>> GetSystemsInRect(Vector2I start, Vector2I end)
 	{
 		var systems = _grpc.GetSystemsInRect(new Rect
 		{
@@ -80,17 +79,12 @@ public partial class Store : Node
 			End = new Vector { X = end.X, Y = end.Y }
 		});
 
-		var result = new List<GrpcSpacetrader.System>();
+		var result = new List<GetSystemsInRectResponse>();
 		while (await systems.ResponseStream.MoveNext())
 		{
 			result.Add(systems.ResponseStream.Current);
 		}
 		return result;
-	}
-
-	public int GetNumShipsInSystem(GrpcSpacetrader.System system)
-	{
-		return Ships.Count((kv) => kv.Value.CurrentLocation.System == system.Id);
 	}
 
 	public async Task<Vector2> GetShipCoordinates(string shipName)
