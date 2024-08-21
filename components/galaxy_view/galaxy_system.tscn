@@ -44,6 +44,7 @@ theme_override_constants/margin_bottom = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Content/MarginContainer"]
 layout_mode = 2
+alignment = 1
 
 [node name="ShipCountContainer" type="HBoxContainer" parent="VBoxContainer/Content/MarginContainer/HBoxContainer"]
 unique_name_in_owner = true

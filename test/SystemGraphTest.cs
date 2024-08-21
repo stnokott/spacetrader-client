@@ -9,13 +9,6 @@ using static GdUnit4.Assertions;
 [TestSuite]
 public class SystemGraphTest
 {
-	[BeforeTest]
-	public void Setup()
-	{
-		// start with empty ship list
-		Store.Instance.Ships.Clear();
-	}
-
 	[TestCase(0)]
 	[TestCase(1)]
 	[TestCase(99)]
@@ -47,28 +40,13 @@ public class SystemGraphTest
 		// assert no nodes yet present
 		AssertArray(getSystemsInGraph()).HasSize(0);
 
-		// add ships to store
-		for (int i = 0; i < numShipsInSystem; i++)
-		{
-			Store.Instance.Ships.Add(
-				string.Format("SHIP-IN-SYSTEM-{0}", i + 1),
-				new GrpcSpacetrader.Ship
-				{
-					CurrentLocation = new GrpcSpacetrader.Ship.Types.Location
-					{
-						System = "SYS-WITH-SHIPS"
-					}
-				}
-			);
-		}
-
 		// add system node without ships
 		root.AddSystemNode(new GrpcSpacetrader.System
 		{
 			Id = "SYS-NO-SHIPS",
 			X = 100,
 			Y = -200,
-		});
+		}, 0);
 		var systemNodes = getSystemsInGraph().ToList();
 		// assert we now have n nodes
 		AssertArray(systemNodes).HasSize(1);
@@ -81,7 +59,7 @@ public class SystemGraphTest
 			Id = "SYS-WITH-SHIPS",
 			X = 100,
 			Y = -200,
-		});
+		}, numShipsInSystem);
 		systemNodes = getSystemsInGraph().ToList();
 		AssertArray(systemNodes).HasSize(2);
 		// assert we have ships displayed
