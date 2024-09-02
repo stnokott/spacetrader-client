@@ -32,35 +32,3 @@ public partial class Client : Node
 		_loadingOverlay.Call("set_progress", p, desc);
 	}
 }
-
-/*
-
-@onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
-
-#@rpc("any_peer", "call_local", "reliable")
-func BuildSystemIndex() -> void:
-	# TODO: move this and below to system graph
-	system_graph.show_loading_overlay("Building System Index...")
-	var result = await Store.GetSystemsInRect(Vector2i(-500, -500), Vector2i(500, 500))
-	BuildSystemIndexComplete()
-	
-#@rpc("authority", "call_local", "reliable")
-func BuildSystemIndexComplete() -> void:
-	system_graph.hide_loading_overlay()
-	# system_graph.refresh_systems(true)
-
-func _on_system_graph_update_required(rect: Rect2i) -> void:
-	if !connected:
-		await multiplayer.connected_to_server
-	system_graph.clear_systems()
-	RequestSystemsInRect.rpc_id(1, rect)
-
-#@rpc("any_peer", "call_remote", "reliable")
-func RequestSystemsInRect(_rect: Rect2) -> void: pass
-
-#@rpc("authority", "call_remote", "reliable")
-#func AddSystem(data: PackedByteArray) -> void:
-#	system_graph.add_system(SystemResource.FromBytes(data))
-#endregion
-
-*/
