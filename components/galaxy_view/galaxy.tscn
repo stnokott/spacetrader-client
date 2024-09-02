@@ -14,7 +14,7 @@ script/source = "extends Camera2D
 @onready
 var lblMousePos: Label = %LabelMousePos
 
-signal viewport_changed()
+signal zoom_changed()
 
 func _ready() -> void:
 	pass
@@ -31,17 +31,19 @@ func _input(event: InputEvent) -> void:
 		if Input.is_action_just_pressed(\"ui_pan\"):
 			position = self.get_screen_center_position() # to prevent snaps during smooting
 		elif Input.is_action_just_released(\"ui_pan\"):
-			viewport_changed.emit()
+			pass
 		elif Input.is_action_pressed(\"ui_zoom_in\"):
 			zoom += Vector2(zoomSpeed, zoomSpeed)
+			_zoom_changed()
 		elif Input.is_action_pressed(\"ui_zoom_out\"):
 			zoom -= Vector2(zoomSpeed, zoomSpeed)
+			_zoom_changed()
 		elif Input.is_action_pressed(\"ui_click\") and event.pressed and event.double_click:
 			self.position = get_global_mouse_position()
-		zoom = clamp(zoom, Vector2(minZoom, minZoom), Vector2(maxZoom, maxZoom))
-
-func _process(delta: float) -> void:
-	pass
+		
+func _zoom_changed() -> void:
+	zoom = clamp(zoom, Vector2(minZoom, minZoom), Vector2(maxZoom, maxZoom))
+	zoom_changed.emit()
 
 func _update_position_labels() -> void:
 	if not lblMousePos:
@@ -152,5 +154,8 @@ repeat_times = 3
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew3"]
 texture = ExtResource("6_5pf22")
 
-[connection signal="viewport_changed" from="Viewport" to="." method="OnCameraViewportChanged" flags=3]
+[node name="SystemNodeLayer" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[connection signal="zoom_changed" from="Viewport" to="." method="OnCameraZoomChanged"]
 [connection signal="timeout" from="Viewport/UILayer/UIUpdateTimer" to="Viewport" method="_update_position_labels"]

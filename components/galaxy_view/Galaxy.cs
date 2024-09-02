@@ -1,21 +1,17 @@
 using Godot;
-using System.Threading.Tasks;
-
-using MathExtensionMethods;
-using System.Linq;
-using System.Collections.Generic;
-using System;
 
 public partial class Galaxy : Node2D
 {
 	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
 
 	private Camera2D _camera;
+	private Node2D _systemNodeLayer;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_camera = GetNode<Camera2D>("%Viewport");
+		_systemNodeLayer = GetNode<Node2D>("%SystemNodeLayer");
 
 		Store.Instance.SystemsUpdated += () =>
 		{
@@ -32,24 +28,36 @@ public partial class Galaxy : Node2D
 		}
 	}
 
-	public void AddSystemNode(string name, Vector2 pos, int shipCount, bool hasJumpgates)
+	private void AddSystemNode(string name, Vector2 pos, int shipCount, bool hasJumpgates)
 	{
 		var node = _systemScene.Instantiate<GalaxySystem>();
 		node.Position = pos;
-		AddChild(node);
+		ScaleNodeToCameraZoom(node, _camera.Zoom);
+		_systemNodeLayer.AddChild(node);
 		node.SetSystem(name, shipCount, hasJumpgates);
 	}
 
-	public void ClearSystemNodes()
+	private void ClearSystemNodes()
 	{
-		foreach (var node in GetChildren())
+		foreach (var node in _systemNodeLayer.GetChildren())
 		{
-			if (node is GalaxySystem)
-			{
-				RemoveChild(node);
-				node.QueueFree();
-			}
+			_systemNodeLayer.RemoveChild(node);
+			node.QueueFree();
 		}
+	}
+
+	public void OnCameraZoomChanged()
+	{
+		var cameraZoom = _camera.Zoom;
+		foreach (var node in _systemNodeLayer.GetChildren())
+		{
+			ScaleNodeToCameraZoom((Node2D)node, cameraZoom);
+		}
+	}
+
+	private static void ScaleNodeToCameraZoom(Node2D node, Vector2 zoom)
+	{
+		node.Scale = Vector2.One / zoom;
 	}
 
 	// TODO: store ship coordinates when querying fleet to avoid gRPC call here
