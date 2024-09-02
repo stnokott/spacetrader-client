@@ -28,10 +28,10 @@ public partial class GalaxySystem : Sprite2D
 		};
 	}
 
-	public void SetSystem(GrpcSpacetrader.System system, int shipCountInSys, bool hasJumpgates)
+	public void SetSystem(string name, int shipCountInSys, bool hasJumpgates)
 	{
 		// set system name
-		_systemNameLabel.Text = system.Id;
+		_systemNameLabel.Text = name;
 		// set ship count
 		_shipIcon.Visible = shipCountInSys > 0;
 		if (shipCountInSys > 0)

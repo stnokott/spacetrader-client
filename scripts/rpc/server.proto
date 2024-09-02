@@ -17,7 +17,7 @@ service Spacetrader {
 	rpc GetCurrentAgent(google.protobuf.Empty) returns (Agent);
 	rpc GetFleet(google.protobuf.Empty) returns (Fleet);
 	rpc GetShipCoordinates(GetShipCoordinatesRequest) returns (GetShipCoordinatesResponse);
-	rpc GetSystemsInRect(Rect) returns (stream GetSystemsInRectResponse);
+	rpc GetAllSystems(google.protobuf.Empty) returns (stream GetAllSystemsResponseItem);
 }
 
 message ServerStatus {
@@ -53,14 +53,7 @@ message Fleet {
 	repeated Ship ships = 1;
 }
 
-message GetShipCountInSystemRequest {
-	string system_name = 1;
-}
-
-message GetShipCountInSystemResponse {
-	int32 n = 1;
-}
-
+// TODO: make this request redundant by returning the coordinates when querying fleet
 message GetShipCoordinatesRequest {
 	string ship_name = 1;
 }
@@ -70,10 +63,11 @@ message GetShipCoordinatesResponse {
 	int32 y = 2;
 }
 
-message GetSystemsInRectResponse {
-	System system = 1;
-	int32 ship_count = 2;
-	repeated string connected_systems = 3; // via jump gates
+message GetAllSystemsResponseItem {
+	string name = 1;
+	Vector pos = 2;
+	int32 ship_count = 3;
+	bool has_jumpgates = 4;
 }
 
 message Vector {

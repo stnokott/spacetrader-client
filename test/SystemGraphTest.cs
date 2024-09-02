@@ -27,13 +27,9 @@ public class SystemGraphTest
 			var nodes = root.GetChildren().Where((child) => child is GalaxySystem);
 			return nodes.Select((node) => node as GalaxySystem);
 		}
-		bool isShipCountVisible(GalaxySystem node)
+		bool isShipVisible(GalaxySystem node)
 		{
-			return node.GetNode<CanvasItem>("%ShipCountContainer").Visible;
-		}
-		string getShipCountString(GalaxySystem node)
-		{
-			return node.GetNode<Label>("%ShipCountLabel").Text;
+			return node.GetNode<CanvasItem>("%ShipIcon").Visible;
 		}
 
 		root.ClearSystemNodes();
@@ -42,12 +38,8 @@ public class SystemGraphTest
 
 		// add system node without ships
 		root.AddSystemNode(
-			system: new GrpcSpacetrader.System
-			{
-				Id = "SYS-NO-SHIPS",
-				X = 100,
-				Y = -200,
-			},
+			name: "SYS-NO-SHIPS",
+			pos: new Vector2(100, -200),
 			shipCount: 0,
 			hasJumpgates: false
 		);
@@ -55,24 +47,18 @@ public class SystemGraphTest
 		// assert we now have n nodes
 		AssertArray(systemNodes).HasSize(1);
 		// assert we have no ship count displayed (since there are no ships in the store)
-		AssertBool(isShipCountVisible(systemNodes[0])).IsFalse();
+		AssertBool(isShipVisible(systemNodes[0])).IsFalse();
 
 		// add system node which has ships
 		root.AddSystemNode(
-			system: new GrpcSpacetrader.System
-			{
-				Id = "SYS-WITH-SHIPS",
-				X = 100,
-				Y = -200,
-			},
+					name: "SYS-WITH-SHIPS",
+			pos: new Vector2(100, -200),
 			shipCount: numShipsInSystem,
 			hasJumpgates: false
 		);
 		systemNodes = getSystemsInGraph().ToList();
 		AssertArray(systemNodes).HasSize(2);
 		// assert we have ships displayed
-		AssertBool(isShipCountVisible(systemNodes[1])).Equals(numShipsInSystem > 0);
-		// assert we have the correct ship count displayed
-		AssertString(getShipCountString(systemNodes[1])).Equals(numShipsInSystem.ToString());
+		AssertBool(isShipVisible(systemNodes[1])).Equals(numShipsInSystem > 0);
 	}
 }

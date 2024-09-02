@@ -18,10 +18,12 @@ public partial class Client : Node
 		// TODO: modularize
 		SetSyncProgress(0f, "Querying Server Status");
 		await Store.Instance.UpdateServerStatus();
-		SetSyncProgress(0.3f, "Updating Agent");
+		SetSyncProgress(0.25f, "Updating Agent");
 		await Store.Instance.UpdateAgentInfo();
-		SetSyncProgress(0.6f, "Querying Fleet");
+		SetSyncProgress(0.5f, "Querying Fleet");
 		await Store.Instance.UpdateShips();
+		SetSyncProgress(0.75f, "Querying Systems");
+		await Store.Instance.UpdateSystems();
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good
 		_loadingOverlay.QueueFree();
