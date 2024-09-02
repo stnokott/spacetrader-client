@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bke63xo1r20ih"]
+[gd_scene load_steps=9 format=3 uid="uid://bke63xo1r20ih"]
 
 [ext_resource type="Script" path="res://components/galaxy_view/Galaxy.cs" id="1_r7la6"]
 [ext_resource type="Texture2D" uid="uid://ml8wkvjv2ksn" path="res://textures/galaxy/Nebula Aqua-Pink.png" id="2_3d1ie"]
@@ -13,6 +13,9 @@ script/source = "extends Camera2D
 
 @onready
 var lblMousePos: Label = %LabelMousePos
+
+@onready
+var collisionShape: CollisionShape2D = %CameraCollisionShape
 
 signal zoom_changed()
 
@@ -43,6 +46,8 @@ func _input(event: InputEvent) -> void:
 		
 func _zoom_changed() -> void:
 	zoom = clamp(zoom, Vector2(minZoom, minZoom), Vector2(maxZoom, maxZoom))
+	var viewportSize: Vector2 = get_viewport_rect().size * (Vector2.ONE / zoom)
+	(collisionShape.shape as RectangleShape2D).size = viewportSize
 	zoom_changed.emit()
 
 func _update_position_labels() -> void:
@@ -60,18 +65,15 @@ func _update_position_labels() -> void:
 	
 "
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qypxd"]
+size = Vector2(800, 600)
+
 [node name="Galaxy" type="Node2D"]
 script = ExtResource("1_r7la6")
 
-[node name="Viewport" type="Camera2D" parent="."]
-unique_name_in_owner = true
-position_smoothing_enabled = true
-position_smoothing_speed = 7.0
-script = SubResource("GDScript_5i42v")
+[node name="UILayer" type="CanvasLayer" parent="."]
 
-[node name="UILayer" type="CanvasLayer" parent="Viewport"]
-
-[node name="PanelContainer" type="PanelContainer" parent="Viewport/UILayer"]
+[node name="PanelContainer" type="PanelContainer" parent="UILayer"]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -81,20 +83,20 @@ grow_vertical = 0
 size_flags_vertical = 8
 theme_type_variation = &"OpaquePanelContainer"
 
-[node name="MarginContainer" type="MarginContainer" parent="Viewport/UILayer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="UILayer/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="LabelMousePos" type="Label" parent="Viewport/UILayer/PanelContainer/MarginContainer"]
+[node name="LabelMousePos" type="Label" parent="UILayer/PanelContainer/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"LabelLowImportance"
 text = "0, 0"
 
-[node name="UIUpdateTimer" type="Timer" parent="Viewport/UILayer"]
+[node name="UIUpdateTimer" type="Timer" parent="UILayer"]
 unique_name_in_owner = true
 wait_time = 0.25
 autostart = true
@@ -157,5 +159,21 @@ texture = ExtResource("6_5pf22")
 [node name="SystemNodeLayer" type="Node2D" parent="."]
 unique_name_in_owner = true
 
+[node name="Viewport" type="Camera2D" parent="."]
+unique_name_in_owner = true
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+script = SubResource("GDScript_5i42v")
+
+[node name="CameraCollisionArea" type="Area2D" parent="Viewport"]
+unique_name_in_owner = true
+collision_layer = 2
+collision_mask = 2
+monitorable = false
+
+[node name="CameraCollisionShape" type="CollisionShape2D" parent="Viewport/CameraCollisionArea"]
+unique_name_in_owner = true
+shape = SubResource("RectangleShape2D_qypxd")
+
+[connection signal="timeout" from="UILayer/UIUpdateTimer" to="Viewport" method="_update_position_labels"]
 [connection signal="zoom_changed" from="Viewport" to="." method="OnCameraZoomChanged"]
-[connection signal="timeout" from="Viewport/UILayer/UIUpdateTimer" to="Viewport" method="_update_position_labels"]

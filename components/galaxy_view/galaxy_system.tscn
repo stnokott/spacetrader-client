@@ -52,6 +52,8 @@ script = ExtResource("1_khsck")
 
 [node name="MouseArea" type="Area2D" parent="."]
 unique_name_in_owner = true
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MouseArea"]
 shape = SubResource("CircleShape2D_tpbo3")

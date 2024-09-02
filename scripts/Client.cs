@@ -16,13 +16,13 @@ public partial class Client : Node
 	private async void InitialSync()
 	{
 		// TODO: modularize
-		SetSyncProgress(0f, "Querying Server Status");
+		SetSyncProgress(0f, "Checking Server Status");
 		await Store.Instance.UpdateServerStatus();
-		SetSyncProgress(0.25f, "Updating Agent");
+		SetSyncProgress(0.25f, "Loading Agent");
 		await Store.Instance.UpdateAgentInfo();
-		SetSyncProgress(0.5f, "Querying Fleet");
+		SetSyncProgress(0.5f, "Loading Fleet");
 		await Store.Instance.UpdateShips();
-		SetSyncProgress(0.75f, "Querying Systems");
+		SetSyncProgress(0.75f, "Loading Systems");
 		await Store.Instance.UpdateSystems();
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good
