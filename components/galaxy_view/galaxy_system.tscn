@@ -1,61 +1,92 @@
-[gd_scene load_steps=3 format=3 uid="uid://76rduys3s1a0"]
+[gd_scene load_steps=9 format=3 uid="uid://76rduys3s1a0"]
 
 [ext_resource type="Script" path="res://components/galaxy_view/GalaxySystem.cs" id="1_khsck"]
+[ext_resource type="Texture2D" uid="uid://csu2uokis5tew" path="res://textures/galaxy/system.png" id="1_w72gg"]
 [ext_resource type="Texture2D" uid="uid://dhhwxy20rco54" path="res://textures/ship_generic.png" id="2_02uyh"]
+[ext_resource type="Texture2D" uid="uid://hcivdibihdv1" path="res://textures/galaxy/system_outline.png" id="3_2mngl"]
 
-[node name="GalaxySystem" type="Node2D"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_tpbo3"]
+radius = 30.0
+
+[sub_resource type="Animation" id="Animation_g20w8"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_6eos5"]
+resource_name = "fade_in"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vy804"]
+_data = {
+"RESET": SubResource("Animation_g20w8"),
+"fade_in": SubResource("Animation_6eos5")
+}
+
+[node name="GalaxySystem" type="Sprite2D"]
+self_modulate = Color(0.2093, 0.91, 0.396153, 1)
+texture = ExtResource("1_w72gg")
 script = ExtResource("1_khsck")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-anchors_preset = 8
+[node name="MouseArea" type="Area2D" parent="."]
+unique_name_in_owner = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MouseArea"]
+shape = SubResource("CircleShape2D_tpbo3")
+
+[node name="JumpgateIcon" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+self_modulate = Color(0.37, 0.6535, 1, 1)
+texture = ExtResource("3_2mngl")
+
+[node name="SystemNameLabel" type="Label" parent="."]
+unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0)
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -61.0
-offset_top = -12.0
-offset_right = 61.0
-offset_bottom = 12.0
+anchor_bottom = 1.0
+offset_left = -42.0
+offset_top = -46.0
+offset_right = 26.0
+offset_bottom = -25.0
 grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
+grow_vertical = 0
+text = "!SYSTEM"
 
-[node name="Header" type="PanelContainer" parent="VBoxContainer"]
-layout_mode = 2
-theme_type_variation = &"GalaxySystemPanelHeader"
-
-[node name="SystemNameLabel" type="Label" parent="VBoxContainer/Header"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="SystemNameLabel"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "?SYSTEMNAME"
-horizontal_alignment = 1
-vertical_alignment = 1
+libraries = {
+"": SubResource("AnimationLibrary_vy804")
+}
 
-[node name="Content" type="PanelContainer" parent="VBoxContainer"]
-layout_mode = 2
-theme_type_variation = &"GalaxySystemPanel"
-
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/Content"]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/Content/MarginContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="ShipCountContainer" type="HBoxContainer" parent="VBoxContainer/Content/MarginContainer/HBoxContainer"]
+[node name="ShipIcon" type="TextureRect" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
-
-[node name="ShipCountLabel" type="Label" parent="VBoxContainer/Content/MarginContainer/HBoxContainer/ShipCountContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "-1"
-
-[node name="ShipCountIcon" type="TextureRect" parent="VBoxContainer/Content/MarginContainer/HBoxContainer/ShipCountContainer"]
-layout_mode = 2
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 22.0
+offset_bottom = 22.0
 texture = ExtResource("2_02uyh")
-stretch_mode = 3

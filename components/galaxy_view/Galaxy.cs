@@ -2,11 +2,10 @@ using Godot;
 using System.Threading.Tasks;
 
 using MathExtensionMethods;
+using System.Linq;
 
 public partial class Galaxy : Node2D
 {
-	private static RandomNumberGenerator _rng = new();
-
 	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
 
 	private Camera2D _camera;
@@ -39,7 +38,7 @@ public partial class Galaxy : Node2D
 		ClearSystemNodes();
 		foreach (var item in result)
 		{
-			AddSystemNode(item.System, item.ShipCount);
+			AddSystemNode(item);
 		}
 	}
 
@@ -50,14 +49,16 @@ public partial class Galaxy : Node2D
 		return cameraRect;
 	}
 
-	public void AddSystemNode(GrpcSpacetrader.System system, int shipCount)
+	public void AddSystemNode(GrpcSpacetrader.GetSystemsInRectResponse item)
 	{
+		var system = item.System;
 		var node = _systemScene.Instantiate<GalaxySystem>();
 		node.Position = new Vector2(system.X, system.Y);
 		AddChild(node);
-		node.SetSystem(system, shipCount);
+		node.SetSystem(system, item.ShipCount, item.ConnectedSystems.Count > 0);
 	}
 
+	// TODO: reuse instead of re-creating nodes
 	public void ClearSystemNodes()
 	{
 		foreach (var node in GetChildren())

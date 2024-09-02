@@ -41,12 +41,16 @@ public class SystemGraphTest
 		AssertArray(getSystemsInGraph()).HasSize(0);
 
 		// add system node without ships
-		root.AddSystemNode(new GrpcSpacetrader.System
+		root.AddSystemNode(new GrpcSpacetrader.GetSystemsInRectResponse
 		{
-			Id = "SYS-NO-SHIPS",
-			X = 100,
-			Y = -200,
-		}, 0);
+			System = new GrpcSpacetrader.System
+			{
+				Id = "SYS-NO-SHIPS",
+				X = 100,
+				Y = -200,
+			},
+			ShipCount = 0
+		});
 		var systemNodes = getSystemsInGraph().ToList();
 		// assert we now have n nodes
 		AssertArray(systemNodes).HasSize(1);
@@ -54,12 +58,16 @@ public class SystemGraphTest
 		AssertBool(isShipCountVisible(systemNodes[0])).IsFalse();
 
 		// add system node which has ships
-		root.AddSystemNode(new GrpcSpacetrader.System
+		root.AddSystemNode(new GrpcSpacetrader.GetSystemsInRectResponse
 		{
-			Id = "SYS-WITH-SHIPS",
-			X = 100,
-			Y = -200,
-		}, numShipsInSystem);
+			System = new GrpcSpacetrader.System
+			{
+				Id = "SYS-WITH-SHIPS",
+				X = 100,
+				Y = -200,
+			},
+			ShipCount = numShipsInSystem
+		});
 		systemNodes = getSystemsInGraph().ToList();
 		AssertArray(systemNodes).HasSize(2);
 		// assert we have ships displayed

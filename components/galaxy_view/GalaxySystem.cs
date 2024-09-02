@@ -1,31 +1,44 @@
 using Godot;
-using System;
 
-public partial class GalaxySystem : Node2D
+public partial class GalaxySystem : Sprite2D
 {
 	private Label _systemNameLabel;
-	private HBoxContainer _shipCountContainer;
-	private Label _shipCountLabel;
+	private TextureRect _shipIcon;
+	private Sprite2D _jumpgateIcon;
+	private Area2D _mouseArea;
+	private AnimationPlayer _animationPlayer;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_systemNameLabel = GetNode<Label>("%SystemNameLabel");
-		_shipCountContainer = GetNode<HBoxContainer>("%ShipCountContainer");
-		_shipCountLabel = GetNode<Label>("%ShipCountLabel");
+		_shipIcon = GetNode<TextureRect>("%ShipIcon");
+		_jumpgateIcon = GetNode<Sprite2D>("%JumpgateIcon");
+
+		_mouseArea = GetNode<Area2D>("%MouseArea");
+		_animationPlayer = GetNode<AnimationPlayer>("%AnimationPlayer");
+
+		_mouseArea.MouseEntered += () =>
+		{
+			_animationPlayer.Play("fade_in");
+		};
+		_mouseArea.MouseExited += () =>
+		{
+			_animationPlayer.PlayBackwards("fade_in");
+		};
 	}
 
-	public void SetSystem(GrpcSpacetrader.System system, int shipCountInSys)
+	public void SetSystem(GrpcSpacetrader.System system, int shipCountInSys, bool hasJumpgates)
 	{
+		// set system name
 		_systemNameLabel.Text = system.Id;
+		// set ship count
+		_shipIcon.Visible = shipCountInSys > 0;
 		if (shipCountInSys > 0)
 		{
-			_shipCountLabel.Text = shipCountInSys.ToString();
-			_shipCountContainer.Visible = true;
+			_shipIcon.TooltipText = "Contains " + shipCountInSys + " of your ships";
 		}
-		else
-		{
-			_shipCountContainer.Visible = false;
-		}
+		// set jump gate
+		_jumpgateIcon.Visible = hasJumpgates;
 	}
 }

@@ -64,7 +64,8 @@ stretch = true
 disable_3d = true
 handle_input_locally = false
 snap_2d_transforms_to_pixel = true
-size = Vector2i(2, 2)
+physics_object_picking = true
+size = Vector2i(439, 517)
 render_target_update_mode = 4
 
 [node name="Galaxy" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport" instance=ExtResource("5_3uuhs")]

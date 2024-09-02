@@ -73,6 +73,7 @@ message GetShipCoordinatesResponse {
 message GetSystemsInRectResponse {
 	System system = 1;
 	int32 ship_count = 2;
+	repeated string connected_systems = 3; // via jump gates
 }
 
 message Vector {
