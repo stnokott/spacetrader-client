@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 using MathExtensionMethods;
 using System.Linq;
+using System.Collections.Generic;
+using System;
 
 public partial class Galaxy : Node2D
 {
@@ -32,13 +34,13 @@ public partial class Galaxy : Node2D
 	{
 		var cameraViewport = GetCameraViewportRect().AsInt();
 		// expand viewport to include prefetched pixels
-		cameraViewport = cameraViewport.Grow(PIXEL_PREFETCH);
+		cameraViewport = cameraViewport.Grow((int)(PIXEL_PREFETCH * (1 / _camera.Zoom.X)));
 
 		var result = await Store.Instance.GetSystemsInRect(cameraViewport.Position, cameraViewport.End);
 		ClearSystemNodes();
 		foreach (var item in result)
 		{
-			AddSystemNode(item);
+			AddSystemNode(item.System, item.ShipCount, item.ConnectedSystems.Count > 0);
 		}
 	}
 
@@ -49,13 +51,12 @@ public partial class Galaxy : Node2D
 		return cameraRect;
 	}
 
-	public void AddSystemNode(GrpcSpacetrader.GetSystemsInRectResponse item)
+	public void AddSystemNode(GrpcSpacetrader.System system, int shipCount, bool hasJumpgates)
 	{
-		var system = item.System;
 		var node = _systemScene.Instantiate<GalaxySystem>();
 		node.Position = new Vector2(system.X, system.Y);
 		AddChild(node);
-		node.SetSystem(system, item.ShipCount, item.ConnectedSystems.Count > 0);
+		node.SetSystem(system, shipCount, hasJumpgates);
 	}
 
 	// TODO: reuse instead of re-creating nodes

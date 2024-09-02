@@ -21,7 +21,7 @@ func _ready() -> void:
 	
 const zoomSpeed: float = 0.08
 const maxZoom: float = 2.0
-const minZoom: float = 0.8
+const minZoom: float = 0.5
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.is_action_pressed(\"ui_pan\"):
@@ -98,11 +98,11 @@ wait_time = 0.25
 autostart = true
 
 [node name="ParallaxBackground" type="Node2D" parent="."]
-position = Vector2(400, 300)
 
 [node name="ParallaxBackground" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.3, 0.3)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 
 [node name="Nebula" type="Sprite2D" parent="ParallaxBackground/ParallaxBackground"]
 texture = ExtResource("2_3d1ie")
@@ -113,6 +113,7 @@ texture = ExtResource("5_w4cjl")
 [node name="ParallaxStarsMany1" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.4, 0.4)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany1"]
 texture = ExtResource("4_dpr23")
@@ -120,6 +121,7 @@ texture = ExtResource("4_dpr23")
 [node name="ParallaxStarsMany2" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.5, 0.5)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 screen_offset = Vector2(100, 100)
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany2"]
@@ -128,6 +130,7 @@ texture = ExtResource("5_w4cjl")
 [node name="ParallaxStarsFew1" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.6, 0.6)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew1"]
 texture = ExtResource("6_5pf22")
@@ -135,6 +138,7 @@ texture = ExtResource("6_5pf22")
 [node name="ParallaxStarsFew2" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.7, 0.7)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 screen_offset = Vector2(150, 150)
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew2"]
@@ -143,6 +147,7 @@ texture = ExtResource("6_waa20")
 [node name="ParallaxStarsFew3" type="Parallax2D" parent="ParallaxBackground"]
 scroll_scale = Vector2(0.8, 0.8)
 repeat_size = Vector2(1024, 1024)
+repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew3"]
 texture = ExtResource("6_5pf22")
