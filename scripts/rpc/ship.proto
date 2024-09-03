@@ -34,8 +34,8 @@ message Ship {
 	Role role = 3;
 
 	message Location {
-		string system = 1;
-		string waypoint = 2;
+		System system = 1;
+		WaypointBase waypoint = 2;
 	}
 	Location currentLocation = 4;
 

@@ -82,14 +82,11 @@ public partial class Galaxy : Node2D
 		return Vector2.One / zoom;
 	}
 
-	// TODO: store ship coordinates when querying fleet to avoid gRPC call here
-	public async void ZoomToShip(string shipName)
+	public void ZoomTo(Vector2 pos)
 	{
-		Vector2 shipCoords = await Store.Instance.GetShipCoordinates(shipName);
-		if (shipCoords.IsEqualApprox(_camera.Position))
+		if (!pos.IsEqualApprox(_camera.Position))
 		{
-			return;
+			_camera.Position = pos;
 		}
-		_camera.Position = shipCoords;
 	}
 }

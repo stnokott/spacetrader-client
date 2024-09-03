@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Godot;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using GrpcSpacetrader;
 
 using Models;
 
@@ -67,7 +66,8 @@ public partial class Store : Node
 			return new InternalShip
 			{
 				Name = ship.Name,
-				Status = ship.Status.ToString() // TODO: enum?
+				Status = ship.Status.ToString(), // TODO: enum?
+				Pos = new Vector2(ship.CurrentLocation.System.X, ship.CurrentLocation.System.Y)
 			};
 		});
 		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));
@@ -93,13 +93,6 @@ public partial class Store : Node
 		}
 
 		EmitSignal(SignalName.SystemsUpdated);
-	}
-
-	public async Task<Vector2> GetShipCoordinates(string shipName)
-	{
-		// TODO: handle ships in transit
-		var sysCoords = await _grpc.GetShipCoordinatesAsync(new GetShipCoordinatesRequest { ShipName = shipName });
-		return new Vector2(sysCoords.X, sysCoords.Y);
 	}
 
 	public sealed record System
