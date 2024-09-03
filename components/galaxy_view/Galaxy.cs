@@ -15,6 +15,13 @@ public partial class Galaxy : Node2D
 		_cameraCollisionArea = GetNode<Area2D>("%CameraCollisionArea");
 		_systemNodeLayer = GetNode<Node2D>("%SystemNodeLayer");
 
+		// we use  collision area bound to the camera viewport to track which systems
+		// are currently visible.
+		// this enables us to only apply scaling fixes related to camera zoom
+		// to the systems which are currently visible instead of having
+		// to iterate all ~9000 system nodes.
+		// additionally, we set Visible=false for nodes not in the camera's
+		// viewport since Godot doesn't perform 2D culling at the time of writing.
 		_cameraCollisionArea.AreaEntered += (area) =>
 		{
 			var systemNode = area.GetParent<GalaxySystem>();
@@ -35,15 +42,6 @@ public partial class Galaxy : Node2D
 		};
 	}
 
-	private void ClearSystemNodes()
-	{
-		foreach (var node in _systemNodeLayer.GetChildren())
-		{
-			_systemNodeLayer.RemoveChild(node);
-			node.QueueFree();
-		}
-	}
-
 	private void RefreshSystems()
 	{
 		ClearSystemNodes();
@@ -62,8 +60,20 @@ public partial class Galaxy : Node2D
 		node.SetSystem(name, shipCount, hasJumpgates);
 	}
 
+	private void ClearSystemNodes()
+	{
+		foreach (var node in _systemNodeLayer.GetChildren())
+		{
+			_systemNodeLayer.RemoveChild(node);
+			node.QueueFree();
+		}
+	}
+
 	public void OnCameraZoomChanged()
 	{
+		// scale nodes inverse to camera zoom so they always stay the same size
+		// regardless of zoom.
+		// (i.e. when zooming out, nodes will scale up and vice-versa)
 		GetTree().SetGroup(_visibleNodesGroup, "scale", NodeScaleForZoom(_camera.Zoom));
 	}
 
