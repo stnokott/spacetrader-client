@@ -4,15 +4,16 @@ using System.Threading.Tasks;
 using Godot;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using GrpcSpacetrader;
 
 using Models;
+
 
 public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
 	private Rpc.Client _grpc;
+	public Dictionary<string, System> Systems = new();
 
 	public override void _Ready()
 	{
@@ -65,32 +66,39 @@ public partial class Store : Node
 			return new InternalShip
 			{
 				Name = ship.Name,
-				Status = ship.Status.ToString() // TODO: enum?
+				Status = ship.Status.ToString(), // TODO: enum?
+				Pos = Systems[ship.CurrentLocation.System].Pos
 			};
 		});
 		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));
 	}
 
-	public async Task<List<GetSystemsInRectResponse>> GetSystemsInRect(Vector2I start, Vector2I end)
-	{
-		var systems = _grpc.GetSystemsInRect(new Rect
-		{
-			Start = new Vector { X = start.X, Y = start.Y },
-			End = new Vector { X = end.X, Y = end.Y }
-		});
+	[Signal]
+	public delegate void SystemsUpdatedEventHandler();
 
-		var result = new List<GetSystemsInRectResponse>();
-		while (await systems.ResponseStream.MoveNext())
+	public async Task UpdateSystems()
+	{
+		var stream = _grpc.GetAllSystems(new Empty());
+
+		Systems.Clear();
+		while (await stream.ResponseStream.MoveNext())
 		{
-			result.Add(systems.ResponseStream.Current);
+			var system = stream.ResponseStream.Current;
+			Systems.Add(system.Name, new System
+			{
+				Pos = new Vector2(system.Pos.X, system.Pos.Y),
+				ShipCount = system.ShipCount,
+				HasJumpgates = system.HasJumpgates
+			});
 		}
-		return result;
+
+		EmitSignal(SignalName.SystemsUpdated);
 	}
 
-	public async Task<Vector2> GetShipCoordinates(string shipName)
+	public sealed record System
 	{
-		// TODO: handle ships in transit
-		var sysCoords = await _grpc.GetShipCoordinatesAsync(new GetShipCoordinatesRequest { ShipName = shipName });
-		return new Vector2(sysCoords.X, sysCoords.Y);
+		public required Vector2 Pos;
+		public required int ShipCount;
+		public bool HasJumpgates;
 	}
 }

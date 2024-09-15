@@ -46,8 +46,9 @@ size_flags_vertical = 3
 [node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel"]
 layout_mode = 2
 
-[node name="ShipList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer" instance=ExtResource("3_r1mxf")]
+[node name="ShipList" parent="UI/VBoxContainer/CenterPanel/HSplitContainer" node_paths=PackedStringArray("galaxy") instance=ExtResource("3_r1mxf")]
 layout_mode = 2
+galaxy = NodePath("../HSplitContainer/SubViewportContainer/SubViewport/Galaxy")
 
 [node name="HSplitContainer" type="HSplitContainer" parent="UI/VBoxContainer/CenterPanel/HSplitContainer"]
 layout_mode = 2
@@ -64,6 +65,7 @@ stretch = true
 disable_3d = true
 handle_input_locally = false
 snap_2d_transforms_to_pixel = true
+physics_object_picking = true
 size = Vector2i(2, 2)
 render_target_update_mode = 4
 
@@ -88,5 +90,3 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
-
-[connection signal="ship_locate_request" from="UI/VBoxContainer/CenterPanel/HSplitContainer/ShipList" to="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport/Galaxy" method="ZoomToShip"]

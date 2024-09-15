@@ -39,6 +39,7 @@ message Ship {
 	}
 	Location currentLocation = 4;
 
+	// TODO: make optional, null when not in transit, filled with router otherwise
 	message Route {
 		// The destination or departure of a ships nav route.
 		WaypointBase origin = 1;
@@ -58,6 +59,8 @@ message Ship {
 		IN_TRANSIT = 3;
 	}
 	FlightStatus status = 6;
+
+	/* TODO: use in extended message
 
 	enum FlightMode {
 		UNKNOWN_FLIGHTMODE = 0;
@@ -158,6 +161,7 @@ message Ship {
 		optional Consumption consumed = 3;
 	}
 	Fuel fuel = 16;
+	*/
 }
 
 // The requirements for installation on a ship.

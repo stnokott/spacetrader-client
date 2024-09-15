@@ -1,83 +1,92 @@
 using Godot;
-using System.Threading.Tasks;
-
-using MathExtensionMethods;
 
 public partial class Galaxy : Node2D
 {
-	private static RandomNumberGenerator _rng = new();
-
 	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
 
 	private Camera2D _camera;
+	private Area2D _cameraCollisionArea;
+	private StringName _visibleNodesGroup = new("visible_nodes");
+	private Node2D _systemNodeLayer;
 
-	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_camera = GetNode<Camera2D>("%Viewport");
+		_cameraCollisionArea = GetNode<Area2D>("%CameraCollisionArea");
+		_systemNodeLayer = GetNode<Node2D>("%SystemNodeLayer");
 
-		CallDeferred(MethodName.OnCameraViewportChanged);
-	}
-
-	public async void OnCameraViewportChanged()
-	{
-		await RefreshSystems();
-	}
-
-	// number of pixels to prefetch in each direction of the viewport
-	private const int PIXEL_PREFETCH = 300;
-
-	// TODO: automatic refresh
-
-	private async Task RefreshSystems()
-	{
-		var cameraViewport = GetCameraViewportRect().AsInt();
-		// expand viewport to include prefetched pixels
-		cameraViewport = cameraViewport.Grow(PIXEL_PREFETCH);
-
-		var result = await Store.Instance.GetSystemsInRect(cameraViewport.Position, cameraViewport.End);
-		ClearSystemNodes();
-		foreach (var item in result)
+		// we use  collision area bound to the camera viewport to track which systems
+		// are currently visible.
+		// this enables us to only apply scaling fixes related to camera zoom
+		// to the systems which are currently visible instead of having
+		// to iterate all ~9000 system nodes.
+		// additionally, we set Visible=false for nodes not in the camera's
+		// viewport since Godot doesn't perform 2D culling at the time of writing.
+		_cameraCollisionArea.AreaEntered += (area) =>
 		{
-			AddSystemNode(item.System, item.ShipCount);
+			var systemNode = area.GetParent<GalaxySystem>();
+			systemNode.Visible = true;
+			systemNode.Scale = NodeScaleForZoom(_camera.Zoom);
+			systemNode.AddToGroup(_visibleNodesGroup);
+		};
+		_cameraCollisionArea.AreaExited += (area) =>
+		{
+			var systemNode = area.GetParent<GalaxySystem>();
+			systemNode.Visible = false;
+			systemNode.RemoveFromGroup(_visibleNodesGroup);
+		};
+
+		Store.Instance.SystemsUpdated += () =>
+		{
+			CallDeferred(MethodName.RefreshSystems);
+		};
+	}
+
+	private void RefreshSystems()
+	{
+		ClearSystemNodes();
+		foreach (var sys in Store.Instance.Systems)
+		{
+			AddSystemNode(sys.Key, sys.Value.Pos, sys.Value.ShipCount, sys.Value.HasJumpgates);
 		}
 	}
 
-	private Rect2 GetCameraViewportRect()
-	{
-		var cameraSize = _camera.GetViewportRect().Size * _camera.Zoom;
-		var cameraRect = new Rect2(_camera.Position - cameraSize / 2, cameraSize);
-		return cameraRect;
-	}
-
-	public void AddSystemNode(GrpcSpacetrader.System system, int shipCount)
+	private void AddSystemNode(string name, Vector2 pos, int shipCount, bool hasJumpgates)
 	{
 		var node = _systemScene.Instantiate<GalaxySystem>();
-		node.Position = new Vector2(system.X, system.Y);
-		AddChild(node);
-		node.SetSystem(system, shipCount);
+		node.Position = pos;
+		node.Scale = NodeScaleForZoom(_camera.Zoom);
+		_systemNodeLayer.AddChild(node);
+		node.SetSystem(name, shipCount, hasJumpgates);
 	}
 
-	public void ClearSystemNodes()
+	private void ClearSystemNodes()
 	{
-		foreach (var node in GetChildren())
+		foreach (var node in _systemNodeLayer.GetChildren())
 		{
-			if (node is GalaxySystem)
-			{
-				RemoveChild(node);
-				node.QueueFree();
-			}
+			_systemNodeLayer.RemoveChild(node);
+			node.QueueFree();
 		}
 	}
 
-	public async void ZoomToShip(string shipName)
+	public void OnCameraZoomChanged()
 	{
-		Vector2 shipCoords = await Store.Instance.GetShipCoordinates(shipName);
-		if (shipCoords.IsEqualApprox(_camera.Position))
+		// scale nodes inverse to camera zoom so they always stay the same size
+		// regardless of zoom.
+		// (i.e. when zooming out, nodes will scale up and vice-versa)
+		GetTree().SetGroup(_visibleNodesGroup, "scale", NodeScaleForZoom(_camera.Zoom));
+	}
+
+	private static Vector2 NodeScaleForZoom(Vector2 zoom)
+	{
+		return Vector2.One / zoom;
+	}
+
+	public void ZoomTo(Vector2 pos)
+	{
+		if (!pos.IsEqualApprox(_camera.Position))
 		{
-			return;
+			_camera.Position = pos;
 		}
-		_camera.Position = shipCoords;
-		await RefreshSystems();
 	}
 }

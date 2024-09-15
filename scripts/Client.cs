@@ -1,4 +1,3 @@
-using System.Security.AccessControl;
 using Godot;
 
 public partial class Client : Node
@@ -16,11 +15,13 @@ public partial class Client : Node
 	private async void InitialSync()
 	{
 		// TODO: modularize
-		SetSyncProgress(0f, "Querying Server Status");
+		SetSyncProgress(0f, "Checking Server Status");
 		await Store.Instance.UpdateServerStatus();
-		SetSyncProgress(0.3f, "Updating Agent");
+		SetSyncProgress(0.25f, "Loading Agent");
 		await Store.Instance.UpdateAgentInfo();
-		SetSyncProgress(0.6f, "Querying Fleet");
+		SetSyncProgress(0.5f, "Loading Systems");
+		await Store.Instance.UpdateSystems();
+		SetSyncProgress(0.75f, "Loading Fleet");
 		await Store.Instance.UpdateShips();
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good
@@ -32,35 +33,3 @@ public partial class Client : Node
 		_loadingOverlay.Call("set_progress", p, desc);
 	}
 }
-
-/*
-
-@onready var system_graph: Node = $UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SystemGraph
-
-#@rpc("any_peer", "call_local", "reliable")
-func BuildSystemIndex() -> void:
-	# TODO: move this and below to system graph
-	system_graph.show_loading_overlay("Building System Index...")
-	var result = await Store.GetSystemsInRect(Vector2i(-500, -500), Vector2i(500, 500))
-	BuildSystemIndexComplete()
-	
-#@rpc("authority", "call_local", "reliable")
-func BuildSystemIndexComplete() -> void:
-	system_graph.hide_loading_overlay()
-	# system_graph.refresh_systems(true)
-
-func _on_system_graph_update_required(rect: Rect2i) -> void:
-	if !connected:
-		await multiplayer.connected_to_server
-	system_graph.clear_systems()
-	RequestSystemsInRect.rpc_id(1, rect)
-
-#@rpc("any_peer", "call_remote", "reliable")
-func RequestSystemsInRect(_rect: Rect2) -> void: pass
-
-#@rpc("authority", "call_remote", "reliable")
-#func AddSystem(data: PackedByteArray) -> void:
-#	system_graph.add_system(SystemResource.FromBytes(data))
-#endregion
-
-*/
