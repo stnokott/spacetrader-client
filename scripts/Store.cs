@@ -67,7 +67,7 @@ public partial class Store : Node
 			{
 				Name = ship.Name,
 				Status = ship.Status.ToString(), // TODO: enum?
-				Pos = new Vector2(ship.CurrentLocation.System.X, ship.CurrentLocation.System.Y)
+				Pos = Systems[ship.CurrentLocation.System].Pos
 			};
 		});
 		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));

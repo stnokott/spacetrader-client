@@ -1,4 +1,3 @@
-using System.Security.AccessControl;
 using Godot;
 
 public partial class Client : Node
@@ -20,10 +19,10 @@ public partial class Client : Node
 		await Store.Instance.UpdateServerStatus();
 		SetSyncProgress(0.25f, "Loading Agent");
 		await Store.Instance.UpdateAgentInfo();
-		SetSyncProgress(0.5f, "Loading Fleet");
-		await Store.Instance.UpdateShips();
-		SetSyncProgress(0.75f, "Loading Systems");
+		SetSyncProgress(0.5f, "Loading Systems");
 		await Store.Instance.UpdateSystems();
+		SetSyncProgress(0.75f, "Loading Fleet");
+		await Store.Instance.UpdateShips();
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good
 		_loadingOverlay.QueueFree();
