@@ -1,23 +1,13 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 
-import "ship.proto";
 import "galaxy.proto";
 
 option go_package = "github.com/stnokott/spacetrader-server/internal/proto";
 option csharp_namespace = "GrpcSpacetrader";
 
 package proto;
-
-service Spacetrader {
-	rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty);
-	rpc GetServerStatus(google.protobuf.Empty) returns (ServerStatus);
-	rpc GetCurrentAgent(google.protobuf.Empty) returns (Agent);
-	rpc GetFleet(google.protobuf.Empty) returns (Fleet);
-	rpc GetAllSystems(google.protobuf.Empty) returns (stream GetAllSystemsResponseItem);
-}
 
 message ServerStatus {
 	string version = 1;
@@ -46,25 +36,4 @@ message Agent {
 	string headquarters = 3;
 	int32 shipCount = 4;
 	Faction startingFaction = 5;
-}
-
-message Fleet {
-	repeated Ship ships = 1;
-}
-
-message GetAllSystemsResponseItem {
-	string name = 1;
-	Vector pos = 2;
-	int32 ship_count = 3;
-	bool has_jumpgates = 4;
-}
-
-message Vector {
-	int32 x = 1;
-	int32 y = 2;
-}
-
-message Rect {
-	Vector start = 1;
-	Vector end = 2;
 }

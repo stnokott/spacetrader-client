@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 public partial class Galaxy : Node2D
@@ -36,36 +37,35 @@ public partial class Galaxy : Node2D
 			systemNode.RemoveFromGroup(_visibleNodesGroup);
 		};
 
-		Store.Instance.SystemsUpdated += () =>
-		{
-			CallDeferred(MethodName.RefreshSystems);
-		};
+		Store.Instance.SystemUpdate += OnSystemUpdated;
 	}
 
-	private void RefreshSystems()
+	private void OnSystemUpdated(string systemName)
 	{
-		ClearSystemNodes();
-		foreach (var sys in Store.Instance.Systems)
+		var sys = Store.Instance.Systems[systemName];
+		var node = _systemNodeLayer.GetNodeOrNull<GalaxySystem>(systemName);
+
+		if (node == null)
 		{
-			AddSystemNode(sys.Key, sys.Value.Pos, sys.Value.ShipCount, sys.Value.HasJumpgates);
+			node = _systemScene.Instantiate<GalaxySystem>();
+			node.Name = systemName;
+			node.Position = sys.Pos;
+			node.Scale = NodeScaleForZoom(_camera.Zoom);
+			_systemNodeLayer.AddChild(node);
 		}
+
+		node.SetSystem(systemName, sys.HasJumpgates);
+		node.UpdateShipCount();
 	}
 
-	private void AddSystemNode(string name, Vector2 pos, int shipCount, bool hasJumpgates)
-	{
-		var node = _systemScene.Instantiate<GalaxySystem>();
-		node.Position = pos;
-		node.Scale = NodeScaleForZoom(_camera.Zoom);
-		_systemNodeLayer.AddChild(node);
-		node.SetSystem(name, shipCount, hasJumpgates);
-	}
-
-	private void ClearSystemNodes()
+	private void OnShipUpdated(string _)
 	{
 		foreach (var node in _systemNodeLayer.GetChildren())
 		{
-			_systemNodeLayer.RemoveChild(node);
-			node.QueueFree();
+			if (node is GalaxySystem system)
+			{
+				system.UpdateShipCount();
+			}
 		}
 	}
 

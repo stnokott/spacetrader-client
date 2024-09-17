@@ -1,38 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b2jf6uq34xi5o"]
 
-[sub_resource type="GDScript" id="GDScript_tefi1"]
-resource_name = "ship_list"
-script/source = "extends VBoxContainer
-
-const InternalShip = preload(\"res://scripts/models/InternalShip.cs\")
-const ship_item_scene: PackedScene = preload(\"res://components/shiplist/ship_list_item.tscn\")
-const ShipListItem = preload(\"res://components/shiplist/ship_list_item.gd\")
-
-const Galaxy = preload(\"res://components/galaxy_view/Galaxy.cs\")
-@export var galaxy: Galaxy
-
-@onready var container: VBoxContainer = %ShipListContainer
-
-func _ready() -> void:
-	Store.FleetUpdate.connect(_on_ships_updated)
-	
-func _on_ships_updated(ships: Array) -> void:
-	_clear_ships()
-	# add ships
-	for ship: InternalShip in ships:
-		_add_ship(ship)
-		
-func _clear_ships() -> void:	
-	for child in container.get_children():
-			container.remove_child(child)
-			child.queue_free()
-	
-func _add_ship(ship: InternalShip) -> void:
-	var ship_node: ShipListItem = ship_item_scene.instantiate()
-	container.add_child(ship_node)
-	ship_node.set_ship(ship)
-	ship_node.locate_button_pressed.connect(galaxy.ZoomTo.bind(ship.Pos))
-"
+[ext_resource type="Script" path="res://components/shiplist/ShipList.cs" id="1_rp6l3"]
 
 [node name="ShipList" type="VBoxContainer"]
 anchors_preset = 15
@@ -43,7 +11,7 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 2
-script = SubResource("GDScript_tefi1")
+script = ExtResource("1_rp6l3")
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 2

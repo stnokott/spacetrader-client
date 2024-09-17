@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 public partial class GalaxySystem : Sprite2D
@@ -28,17 +29,22 @@ public partial class GalaxySystem : Sprite2D
 		};
 	}
 
-	public void SetSystem(string name, int shipCountInSys, bool hasJumpgates)
+	public void SetSystem(string name, bool hasJumpgates)
 	{
 		// set system name
 		_systemNameLabel.Text = name;
-		// set ship count
-		_shipIcon.Visible = shipCountInSys > 0;
-		if (shipCountInSys > 0)
-		{
-			_shipIcon.TooltipText = "Contains " + shipCountInSys + " of your ships";
-		}
 		// set jump gate
 		_jumpgateIcon.Visible = hasJumpgates;
+	}
+
+	public void UpdateShipCount()
+	{
+		var n = Store.Instance.Ships.Values.Count((ship) => ship.SystemName == _systemNameLabel.Text);
+		// set ship count
+		_shipIcon.Visible = n > 0;
+		if (n > 0)
+		{
+			_shipIcon.TooltipText = "Contains " + n + " of your ships";
+		}
 	}
 }

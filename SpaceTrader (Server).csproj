@@ -15,20 +15,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
-    <PackageReference Include="Microsoft.Kiota.Abstractions" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Authentication.Azure" Version="1.1.7" />
-    <PackageReference Include="Microsoft.Kiota.Http.HttpClientLibrary" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Form" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Json" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Multipart" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Text" Version="1.9.8" />
     <PackageReference Include="gdUnit4.api" Version="4.3.0" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="scripts/rpc/galaxy.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/ship.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/trade.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/server.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/galaxy.proto" GrpcServices="None" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/ship.proto" GrpcServices="None" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/trade.proto" GrpcServices="None" ProtoRoot="scripts/rpc" />
+    <Protobuf Include="scripts/rpc/server.proto" GrpcServices="None" ProtoRoot="scripts/rpc" />
   </ItemGroup>
 </Project>

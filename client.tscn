@@ -1,15 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://diwk7wvypnwvf"]
+[gd_scene load_steps=6 format=3 uid="uid://diwk7wvypnwvf"]
 
 [ext_resource type="Theme" uid="uid://dhh2viiaa0sj0" path="res://theme.tres" id="1_2puh0"]
-[ext_resource type="Script" path="res://scripts/Client.cs" id="1_3omur"]
 [ext_resource type="PackedScene" uid="uid://cvjad8di0mwlp" path="res://components/header.tscn" id="2_e1t44"]
 [ext_resource type="PackedScene" uid="uid://c1b8fjr62a8b8" path="res://components/footer.tscn" id="3_o574o"]
 [ext_resource type="PackedScene" uid="uid://b2jf6uq34xi5o" path="res://components/shiplist/ship_list.tscn" id="3_r1mxf"]
-[ext_resource type="PackedScene" uid="uid://d3fb8jt6110y8" path="res://components/loading_overlay.tscn" id="4_5w3wq"]
 [ext_resource type="PackedScene" uid="uid://bke63xo1r20ih" path="res://components/galaxy_view/galaxy.tscn" id="5_3uuhs"]
 
 [node name="rpc" type="Node"]
-script = ExtResource("1_3omur")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -66,7 +63,7 @@ disable_3d = true
 handle_input_locally = false
 snap_2d_transforms_to_pixel = true
 physics_object_picking = true
-size = Vector2i(2, 2)
+size = Vector2i(439, 517)
 render_target_update_mode = 4
 
 [node name="Galaxy" parent="UI/VBoxContainer/CenterPanel/HSplitContainer/HSplitContainer/SubViewportContainer/SubViewport" instance=ExtResource("5_3uuhs")]
@@ -77,16 +74,3 @@ size_flags_horizontal = 3
 
 [node name="Footer" parent="UI/VBoxContainer" instance=ExtResource("3_o574o")]
 layout_mode = 2
-
-[node name="LoadingOverlay" parent="UI" instance=ExtResource("4_5w3wq")]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0

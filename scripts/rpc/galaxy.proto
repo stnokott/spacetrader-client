@@ -7,7 +7,6 @@ option csharp_namespace = "GrpcSpacetrader";
 
 message System {
 	string id = 1;
-	string sector = 2;
 
 	enum Type {
 		UNKNOWN_SYSTEMTYPE = 0;
@@ -22,14 +21,13 @@ message System {
 		NEBULA = 9;
 		UNSTABLE = 10;
 	}
-	Type type = 3;
+	Type type = 2;
 
-	int32 x = 4;
-	int32 y = 5;
-	repeated WaypointBase waypoints = 6;
+	int32 x = 3;
+	int32 y = 4;
 
 	// Factions that control this system.
-	repeated Faction factions = 7;
+	repeated Faction factions = 5;
 }
 
 message WaypointBase {
