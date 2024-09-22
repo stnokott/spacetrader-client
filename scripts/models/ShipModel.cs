@@ -2,7 +2,7 @@ using Godot;
 
 using FlightStatus = GrpcSpacetrader.Ship.Types.FlightStatus;
 
-public sealed record ShipModel
+public struct ShipModel
 {
 	public string Name;
 

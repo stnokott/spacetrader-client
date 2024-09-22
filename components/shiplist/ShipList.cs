@@ -19,7 +19,7 @@ public partial class ShipList : VBoxContainer
 
 	private void OnShipUpdated(string shipName)
 	{
-		var ship = Store.Instance.Ships[shipName];
+		var ship = Store.Instance.Graph.GetShip(shipName);
 		// use existing node if possible
 		var node = GetNodeOrNull<ShipListItem>(ship.Name);
 		if (node == null)
@@ -30,6 +30,6 @@ public partial class ShipList : VBoxContainer
 			node.Name = ship.Name; // set node name for identification
 		}
 		// update ship data
-		node.SetShip(ship, () => galaxy.ZoomTo(Store.Instance.Systems[ship.SystemName].Pos));
+		node.SetShip(ship, () => galaxy.ZoomTo(Store.Instance.Graph.GetSystem(ship.SystemName).Model.Pos));
 	}
 }

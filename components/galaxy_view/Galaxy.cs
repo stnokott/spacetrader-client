@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Godot;
 
@@ -42,31 +43,19 @@ public partial class Galaxy : Node2D
 
 	private void OnSystemUpdated(string systemName)
 	{
-		var sys = Store.Instance.Systems[systemName];
+		var sys = Store.Instance.Graph.GetSystem(systemName);
 		var node = _systemNodeLayer.GetNodeOrNull<GalaxySystem>(systemName);
 
 		if (node == null)
 		{
 			node = _systemScene.Instantiate<GalaxySystem>();
 			node.Name = systemName;
-			node.Position = sys.Pos;
+			node.Position = sys.Model.Pos;
 			node.Scale = NodeScaleForZoom(_camera.Zoom);
 			_systemNodeLayer.AddChild(node);
 		}
 
-		node.SetSystem(systemName, sys.HasJumpgates);
-		node.UpdateShipCount();
-	}
-
-	private void OnShipUpdated(string _)
-	{
-		foreach (var node in _systemNodeLayer.GetChildren())
-		{
-			if (node is GalaxySystem system)
-			{
-				system.UpdateShipCount();
-			}
-		}
+		node.SetSystem(systemName, sys.Ships.Count, sys.Model.HasJumpgates);
 	}
 
 	public void OnCameraZoomChanged()

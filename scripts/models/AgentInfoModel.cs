@@ -1,6 +1,6 @@
 namespace Models;
 
-public sealed record AgentInfoModel
+public struct AgentInfoModel
 {
 
 	public string Name;

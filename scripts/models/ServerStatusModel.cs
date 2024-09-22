@@ -3,7 +3,7 @@ using System;
 namespace Models;
 
 
-public sealed record ServerStatusModel
+public struct ServerStatusModel
 {
 	public string Version;
 	public DateTime NextReset;
