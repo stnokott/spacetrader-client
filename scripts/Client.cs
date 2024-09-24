@@ -1,5 +1,7 @@
 using Godot;
 
+#pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
+
 public partial class Client : Node
 {
 	private Control _loadingOverlay;
@@ -16,13 +18,13 @@ public partial class Client : Node
 	{
 		// TODO: modularize
 		SetSyncProgress(0f, "Checking Server Status");
-		await Store.Instance.UpdateServerStatus();
+		await Store.Instance.QueryServer();
 		SetSyncProgress(0.25f, "Loading Agent");
-		await Store.Instance.UpdateAgentInfo();
+		await Store.Instance.QueryAgent();
 		SetSyncProgress(0.5f, "Loading Systems");
-		await Store.Instance.UpdateSystems();
+		await Store.Instance.QuerySystems();
 		SetSyncProgress(0.75f, "Loading Fleet");
-		await Store.Instance.UpdateShips();
+		await Store.Instance.QueryShips();
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good
 		_loadingOverlay.QueueFree();
@@ -33,3 +35,5 @@ public partial class Client : Node
 		_loadingOverlay.Call("set_progress", p, desc);
 	}
 }
+
+#pragma warning restore CS8618 // Godot classes are reliably initialized in _Ready()

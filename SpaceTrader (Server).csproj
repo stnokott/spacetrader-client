@@ -7,28 +7,11 @@
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'ios' ">net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>SpaceTraderServer</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.27.2" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.63.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.65.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
-    <PackageReference Include="Microsoft.Kiota.Abstractions" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Authentication.Azure" Version="1.1.7" />
-    <PackageReference Include="Microsoft.Kiota.Http.HttpClientLibrary" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Form" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Json" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Multipart" Version="1.9.8" />
-    <PackageReference Include="Microsoft.Kiota.Serialization.Text" Version="1.9.8" />
     <PackageReference Include="gdUnit4.api" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Protobuf Include="scripts/rpc/galaxy.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/ship.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/trade.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
-    <Protobuf Include="scripts/rpc/server.proto" GrpcServices="Client" ProtoRoot="scripts/rpc" />
+    <PackageReference Include="GraphQL.Client" Version="6.1.0" />
+    <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="6.1.0" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,14 @@
+[
+	{
+		"patternBaseType": ".+",
+		"patternValueType": "^Time$",
+		"patternValueName": ".*",
+		"netTypeName": "DateTime"
+	},
+	{
+		"patternBaseType": ".+",
+		"patternValueType": "^Int64$",
+		"patternValueName": ".*",
+		"netTypeName": "long"
+	}
+]

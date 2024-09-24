@@ -1,104 +1,208 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-
+using GraphQL;
+using GraphQL.Client.Abstractions;
+using GraphQL.Client.Http;
+using GraphQL.Client.Serializer.Newtonsoft;
 using Models;
 
+#pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
 public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
-	private Rpc.Client _grpc;
-	public Dictionary<string, System> Systems = new();
+	public Data Data = new();
+
+	private GraphQLHttpClient graphQLClient;
 
 	public override void _Ready()
 	{
 		Instance = this;
-		_grpc = new Rpc.Client("localhost", 55555); // TODO: configure from UI
-																								// TODO: connection error handling
+
+		graphQLClient = new GraphQLHttpClient(
+			new GraphQLHttpClientOptions
+			{
+				EndPoint = new Uri("http://localhost:55555/graphql"),
+				EnableAutomaticPersistedQueries = (_) => true
+			},
+			new NewtonsoftJsonSerializer()
+		);
 	}
 
 	public override void _ExitTree()
 	{
-		_grpc.Dispose();
+		graphQLClient.Dispose();
 		base._ExitTree();
 	}
 
-	[Signal]
-	public delegate void ServerInfoUpdateEventHandler(InternalServerStatus status);
 
-	public async Task UpdateServerStatus()
+	[Signal]
+	public delegate void ServerInfoUpdateEventHandler();
+
+	private static readonly GraphQLQuery serverQuery = new(
+		new GraphQLModels.QueryQueryBuilder()
+			.WithServer(new GraphQLModels.ServerQueryBuilder()
+				.WithVersion()
+				.WithNextReset()
+			)
+			.Build(GraphQLModels.Formatting.None)
+	);
+
+	public async Task QueryServer()
 	{
-		var serverStatus = await _grpc.GetServerStatusAsync(new Empty());
-		EmitSignal(SignalName.ServerInfoUpdate, new InternalServerStatus
+		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ServerResponse>(serverQuery);
+		var server = resp.Data.Server; // TODO: check errors
+
+		Data.ServerStatus = new()
 		{
-			Version = serverStatus.Version,
-			NextReset = serverStatus.NextReset.ToString() // TODO: check if DateTime can be used
-		});
+			Version = server.Version,
+			NextReset = server.NextReset
+		};
+		EmitSignal(SignalName.ServerInfoUpdate);
 	}
 
 
 	[Signal]
-	public delegate void AgentInfoUpdateEventHandler(InternalAgentInfo agent);
+	public delegate void AgentInfoUpdateEventHandler();
 
-	public async Task UpdateAgentInfo()
+	private static readonly GraphQLQuery agentQuery = new(
+		new GraphQLModels.QueryQueryBuilder()
+			.WithAgent(new GraphQLModels.AgentQueryBuilder()
+				.WithName()
+				.WithCredits()
+			)
+			.Build(GraphQLModels.Formatting.None)
+	);
+
+	public async Task QueryAgent()
 	{
-		var agentInfo = await _grpc.GetCurrentAgentAsync(new Empty());
-		EmitSignal(SignalName.AgentInfoUpdate, new InternalAgentInfo
+		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.AgentResponse>(agentQuery);
+		var agent = resp.Data.Agent; // TODO: check errors
+
+		Data.Agent = new()
 		{
-			Name = agentInfo.Name,
-			Credits = agentInfo.Credits
-		});
+			Name = agent.Name,
+			Credits = agent.Credits
+		};
+		EmitSignal(SignalName.AgentInfoUpdate);
 	}
 
 	[Signal]
-	public delegate void FleetUpdateEventHandler(Godot.Collections.Array<InternalShip> ships);
+	public delegate void SystemUpdateEventHandler(string name);
 
-	public async Task UpdateShips()
+	private static readonly GraphQLQuery systemsQuery = new(
+		new GraphQLModels.QueryQueryBuilder()
+			.WithSystems(new GraphQLModels.SystemQueryBuilder()
+				.WithAllFields()
+				.ExceptWaypoints()
+			)
+		.Build(GraphQLModels.Formatting.None)
+	);
+
+	public async Task QuerySystems()
 	{
-		var ships = await _grpc.GetFleetAsync(new Empty());
-		var internalShips = ships.Ships.Select((ship) =>
+		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SystemsResponse>(systemsQuery);
+		// TODO: check errors
+
+		foreach (var system in resp.Data.Systems)
 		{
-			return new InternalShip
+			var key = system.Name;
+			Data.systems[key] = new SystemModel
+			{
+				Name = system.Name,
+				Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
+				HasJumpgates = true, // TODO: include jumpgate info in system proto
+			};
+			EmitSignal(SignalName.SystemUpdate, key);
+		}
+	}
+
+	[Signal]
+	public delegate void ShipUpdateEventHandler(string name);
+	[Signal]
+	public delegate void ShipMovedFromSystemEventHandler(string ship, string system);
+	[Signal]
+	public delegate void ShipMovedToSystemEventHandler(string ship, string system);
+
+	private static readonly GraphQLQuery shipsQuery = new(
+		new GraphQLModels.QueryQueryBuilder()
+		.WithShips(new GraphQLModels.ShipQueryBuilder()
+			.WithName()
+			.WithStatus()
+			.WithSystem(new GraphQLModels.SystemQueryBuilder().WithName())
+			.WithWaypoint(new GraphQLModels.WaypointQueryBuilder().WithName())
+		)
+		.Build(GraphQLModels.Formatting.None)
+	);
+
+	public async Task QueryShips()
+	{
+		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ShipsResponse>(shipsQuery);
+		// TODO: check errors
+
+		foreach (var ship in resp.Data.Ships)
+		{
+			var key = ship.Name;
+			var shipExists = Data.ships.TryGetValue(key, out ShipModel oldShip);
+
+			var newShip = new ShipModel
 			{
 				Name = ship.Name,
-				Status = ship.Status.ToString(), // TODO: enum?
-				Pos = Systems[ship.CurrentLocation.System].Pos
+				Status = (GraphQLModels.ShipStatus)ship!.Status!,
+				SystemName = ship.System.Name,
+				WaypointName = ship.Waypoint.Name
 			};
-		});
-		EmitSignal(SignalName.FleetUpdate, new Godot.Collections.Array<InternalShip>(internalShips));
-	}
+			Data.ships[key] = newShip;
+			EmitSignal(SignalName.ShipUpdate, key);
 
-	[Signal]
-	public delegate void SystemsUpdatedEventHandler();
-
-	public async Task UpdateSystems()
-	{
-		var stream = _grpc.GetAllSystems(new Empty());
-
-		Systems.Clear();
-		while (await stream.ResponseStream.MoveNext())
-		{
-			var system = stream.ResponseStream.Current;
-			Systems.Add(system.Name, new System
+			// check ship movement between systems
+			if (shipExists && oldShip.SystemName != newShip.SystemName)
 			{
-				Pos = new Vector2(system.Pos.X, system.Pos.Y),
-				ShipCount = system.ShipCount,
-				HasJumpgates = system.HasJumpgates
-			});
+				EmitSignal(SignalName.ShipMovedFromSystem, oldShip.Name, oldShip.Name);
+				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+			}
+			if (!shipExists)
+			{
+				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+			}
 		}
-
-		EmitSignal(SignalName.SystemsUpdated);
 	}
 
-	public sealed record System
+	public List<ShipModel> ShipsInSystem(string system)
 	{
-		public required Vector2 Pos;
-		public required int ShipCount;
-		public bool HasJumpgates;
+		return Data.ships.Where((kv) => kv.Value.SystemName == system).Select((kv) => kv.Value).ToList();
+	}
+}
+
+#pragma warning restore CS8618 // Godot classes are reliably initialized in _Ready()
+
+
+public class Data
+{
+	public ServerStatusModel ServerStatus = new() { Version = "v0.0.0", NextReset = DateTime.MaxValue };
+	public AgentInfoModel Agent = new() { Name = "!AGENTNAME", Credits = 0 };
+
+	internal readonly ConcurrentDictionary<string, SystemModel> systems = new();
+	public ReadOnlyDictionary<string, SystemModel> Systems
+	{
+		get
+		{
+			return new ReadOnlyDictionary<string, SystemModel>(systems);
+		}
+	}
+
+	internal readonly ConcurrentDictionary<string, ShipModel> ships = new();
+	public ReadOnlyDictionary<string, ShipModel> Ships
+	{
+		get
+		{
+			return new ReadOnlyDictionary<string, ShipModel>(ships);
+		}
 	}
 }
