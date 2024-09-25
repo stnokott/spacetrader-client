@@ -118,8 +118,14 @@ public partial class Store : Node
 				.WithEdges(new GraphQLModels.SystemEdgeQueryBuilder()
 					.WithCursor()
 					.WithNode(new GraphQLModels.SystemQueryBuilder()
-						.WithAllFields()
-						.ExceptWaypoints()
+						.WithName()
+						.WithX()
+						.WithY()
+						.WithWaypoints(new GraphQLModels.WaypointQueryBuilder()
+							.WithConnectedTo(new GraphQLModels.WaypointQueryBuilder()
+								.WithName()
+							)
+						)
 					)
 				),
 				param)
@@ -152,7 +158,7 @@ public partial class Store : Node
 				{
 					Name = system.Name,
 					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
-					HasJumpgates = system.HasJumpgates!.Value
+					HasJumpgates = system.Waypoints.Any((wp) => wp.ConnectedTo.Count > 0)
 				};
 				EmitSignal(SignalName.SystemUpdate, key);
 				n++;

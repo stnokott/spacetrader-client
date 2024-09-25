@@ -1668,8 +1668,7 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "x" },
                 new GraphQlFieldMetadata { Name = "y" },
                 new GraphQlFieldMetadata { Name = "waypoints", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "factions", IsComplex = true },
-                new GraphQlFieldMetadata { Name = "hasJumpgates" }
+                new GraphQlFieldMetadata { Name = "factions", IsComplex = true }
             };
 
         protected override string TypeName { get { return "System"; } } 
@@ -1734,16 +1733,6 @@ namespace GraphQLModels
         public SystemQueryBuilder ExceptFactions()
         {
             return ExceptField("factions");
-        }
-
-        public SystemQueryBuilder WithHasJumpgates(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("hasJumpgates", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public SystemQueryBuilder ExceptHasJumpgates()
-        {
-            return ExceptField("hasJumpgates");
         }
     }
 
@@ -1824,7 +1813,8 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "system", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) },
                 new GraphQlFieldMetadata { Name = "type" },
                 new GraphQlFieldMetadata { Name = "x" },
-                new GraphQlFieldMetadata { Name = "y" }
+                new GraphQlFieldMetadata { Name = "y" },
+                new GraphQlFieldMetadata { Name = "connectedTo", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) }
             };
 
         protected override string TypeName { get { return "Waypoint"; } } 
@@ -1879,6 +1869,16 @@ namespace GraphQLModels
         public WaypointQueryBuilder ExceptY()
         {
             return ExceptField("y");
+        }
+
+        public WaypointQueryBuilder WithConnectedTo(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("connectedTo", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public WaypointQueryBuilder ExceptConnectedTo()
+        {
+            return ExceptField("connectedTo");
         }
     }
     #endregion
@@ -1986,7 +1986,6 @@ namespace GraphQLModels
         public int? Y { get; set; }
         public ICollection<Waypoint> Waypoints { get; set; }
         public ICollection<Faction> Factions { get; set; }
-        public bool? HasJumpgates { get; set; }
     }
 
     public class SystemConnection
@@ -2008,6 +2007,7 @@ namespace GraphQLModels
         public WaypointType? Type { get; set; }
         public int? X { get; set; }
         public int? Y { get; set; }
+        public ICollection<Waypoint> ConnectedTo { get; set; }
     }
     #endregion
 }
