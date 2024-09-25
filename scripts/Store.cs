@@ -55,7 +55,7 @@ public partial class Store : Node
 			.Build(GraphQLModels.Formatting.None)
 	);
 
-	public async Task QueryServer()
+	public async Task QueryServer(IProgress<float> _)
 	{
 		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ServerResponse>(serverQuery);
 		var server = resp.Data.Server; // TODO: check errors
@@ -81,7 +81,7 @@ public partial class Store : Node
 			.Build(GraphQLModels.Formatting.None)
 	);
 
-	public async Task QueryAgent()
+	public async Task QueryAgent(IProgress<float> progress)
 	{
 		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.AgentResponse>(agentQuery);
 		var agent = resp.Data.Agent; // TODO: check errors
@@ -130,7 +130,7 @@ public partial class Store : Node
 
 	private const int SYSTEMS_PER_PAGE = 100;
 
-	public async Task QuerySystems()
+	public async Task QuerySystems(IProgress<float> progress)
 	{
 		var hasMorePages = true;
 		var nextCursor = "";
@@ -160,7 +160,7 @@ public partial class Store : Node
 
 			hasMorePages = data.PageInfo.HasNextPage!.Value;
 			nextCursor = data.Edges.Last().Cursor;
-			GD.Print("queried " + n + "/" + data.PageInfo.TotalCount);
+			progress.Report((float)n / data.PageInfo.TotalCount!.Value);
 		}
 	}
 
@@ -182,13 +182,14 @@ public partial class Store : Node
 		.Build(GraphQLModels.Formatting.None)
 	);
 
-	public async Task QueryShips()
+	public async Task QueryShips(IProgress<float> progress)
 	{
 		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ShipsResponse>(shipsQuery);
 		// TODO: check errors
 
-		foreach (var ship in resp.Data.Ships)
+		for (var i = 0; i < resp.Data.Ships.Count; i++)
 		{
+			var ship = resp.Data.Ships[i];
 			var key = ship.Name;
 			var shipExists = Data.ships.TryGetValue(key, out ShipModel oldShip);
 
@@ -212,6 +213,7 @@ public partial class Store : Node
 			{
 				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
 			}
+			progress.Report((float)(i + 1) / resp.Data.Ships.Count);
 		}
 	}
 
