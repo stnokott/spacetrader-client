@@ -20,23 +20,14 @@ public partial class Client : Node
 
 	private async void InitialSync()
 	{
-		var totalProgress = 0f;
-
-		var runTask = async (Func<IProgress<float>, Task> taskFunc, string name, float progressChunk) =>
+		async Task runTask(Func<IProgress<float>, Task> taskFunc, string name, float progressChunk)
 		{
 			var progress = new Progress<float>();
-			progress.ProgressChanged += (_, p) =>
-			{
-				// calculate progress within chunk
-				var pChunk = totalProgress + (progressChunk * p);
-				SetSyncProgress(name, pChunk);
-			};
+			progress.ProgressChanged += (_, p) => SetSyncProgress(name, p);
 			await taskFunc(progress);
-			totalProgress += progressChunk;
-			Debug.Assert(totalProgress <= 1.0);
-		};
+		}
 
-		await runTask(Store.Instance.QueryServer, "Checking Server Status", 0.25f);
+		await runTask(Store.Instance.QueryServer, "Getting Server Status", 0.25f);
 		await runTask(Store.Instance.QueryAgent, "Loading Agent", 0.25f);
 		await runTask(Store.Instance.QuerySystems, "Loading Systems", 0.25f);
 		await runTask(Store.Instance.QueryShips, "Loading Fleet", 0.25f);
