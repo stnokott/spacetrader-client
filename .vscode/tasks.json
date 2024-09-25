@@ -19,19 +19,16 @@
 			}
 		},
 		{
-			"label": "generate API client",
-			"type": "docker-run",
-			"dockerRun": {
-				"image": "mcr.microsoft.com/openapi/kiota",
-				"command": "generate -lCSharp -c SpaceTradersClient -n SpaceTradersApi.Client -o /local/gen/api --exclude-backward-compatible -d \"https://stoplight.io/api/v1/projects/spacetraders/spacetraders/nodes/reference/SpaceTraders.json?fromExportButton=true&snapshotType=http_service&deref=optimizedBundle\"",
-				"remove": true,
-				"volumes": [
-					{
-						"localPath": "${cwd}",
-						"containerPath": "/local"
-					}
-				],
-			},
+			"label": "generate GraphQL types",
+			"type": "process",
+			"command": "graphql-client-generator",
+			"args": [
+				"--serviceUrl=http://localhost:55555/graphql",
+				"--outputPath=${workspaceFolder}/scripts/graph/GraphQL.cs",
+				"--namespace=GraphQLModels",
+				"--regexScalarFieldTypeMappingConfigurationFile=${workspaceFolder}/scripts/graph/RegexScalarFieldTypeMappingProvider.gql.config.json"
+			],
+			"problemMatcher": []
 		}
 	]
 }

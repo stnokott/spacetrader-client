@@ -2,7 +2,7 @@
 
 [ext_resource type="StyleBox" uid="uid://bqcx1n8nl0mv2" path="res://theme/style_box_normal.tres" id="1_1ov7y"]
 [ext_resource type="Texture2D" uid="uid://0dopx10f1odg" path="res://textures/ship_status/docked.tres" id="1_r7cww"]
-[ext_resource type="Script" path="res://components/shiplist/ship_list_item.gd" id="1_wiwcx"]
+[ext_resource type="Script" path="res://components/shiplist/ShipListItem.cs" id="2_bmp4t"]
 [ext_resource type="Texture2D" uid="uid://bsxayicvlalpt" path="res://textures/ship_status/in_orbit.tres" id="3_4pl2h"]
 
 [node name="Panel" type="PanelContainer"]
@@ -13,7 +13,7 @@ grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 theme_override_styles/panel = ExtResource("1_1ov7y")
-script = ExtResource("1_wiwcx")
+script = ExtResource("2_bmp4t")
 
 [node name="ShipListItem" type="HBoxContainer" parent="."]
 layout_mode = 2

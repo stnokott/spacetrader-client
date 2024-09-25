@@ -7,7 +7,7 @@ script/source = "extends PanelContainer
 @onready var loading_desc: Label = $VBoxContainer/Description
 @onready var loading_progress: ProgressBar = $VBoxContainer/Progress
 
-func set_progress(progress: float, desc: String) -> void:
+func set_progress(desc: String, progress: float) -> void:
 	loading_desc.text = desc
 	loading_progress.value = progress
 "

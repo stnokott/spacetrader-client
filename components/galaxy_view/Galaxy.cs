@@ -1,5 +1,7 @@
 using Godot;
 
+#pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
+
 public partial class Galaxy : Node2D
 {
 	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
@@ -36,37 +38,33 @@ public partial class Galaxy : Node2D
 			systemNode.RemoveFromGroup(_visibleNodesGroup);
 		};
 
-		Store.Instance.SystemsUpdated += () =>
-		{
-			CallDeferred(MethodName.RefreshSystems);
-		};
+		Store.Instance.SystemUpdate += OnSystemUpdated;
+		Store.Instance.ShipMovedFromSystem += OnShipMoved;
+		Store.Instance.ShipMovedToSystem += OnShipMoved;
 	}
 
-	private void RefreshSystems()
+	private void OnSystemUpdated(string systemName)
 	{
-		ClearSystemNodes();
-		foreach (var sys in Store.Instance.Systems)
+		var sys = Store.Instance.Data.Systems[systemName];
+		var node = _systemNodeLayer.GetNodeOrNull<GalaxySystem>(systemName);
+
+		if (node == null)
 		{
-			AddSystemNode(sys.Key, sys.Value.Pos, sys.Value.ShipCount, sys.Value.HasJumpgates);
+			node = _systemScene.Instantiate<GalaxySystem>();
+			node.Name = systemName;
+			node.Position = sys.Pos;
+			node.Scale = NodeScaleForZoom(_camera.Zoom);
+			_systemNodeLayer.AddChild(node);
 		}
+
+		node.SetSystem(systemName, sys.HasJumpgates);
 	}
 
-	private void AddSystemNode(string name, Vector2 pos, int shipCount, bool hasJumpgates)
+	private void OnShipMoved(string _, string systemName)
 	{
-		var node = _systemScene.Instantiate<GalaxySystem>();
-		node.Position = pos;
-		node.Scale = NodeScaleForZoom(_camera.Zoom);
-		_systemNodeLayer.AddChild(node);
-		node.SetSystem(name, shipCount, hasJumpgates);
-	}
-
-	private void ClearSystemNodes()
-	{
-		foreach (var node in _systemNodeLayer.GetChildren())
-		{
-			_systemNodeLayer.RemoveChild(node);
-			node.QueueFree();
-		}
+		var node = _systemNodeLayer.GetNode<GalaxySystem>(systemName);
+		var shipCount = Store.Instance.ShipsInSystem(systemName).Count;
+		node.SetShipCount(shipCount);
 	}
 
 	public void OnCameraZoomChanged()
@@ -90,3 +88,5 @@ public partial class Galaxy : Node2D
 		}
 	}
 }
+
+#pragma warning restore CS8618 // Godot classes are reliably initialized in _Ready()
