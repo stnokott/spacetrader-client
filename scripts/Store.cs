@@ -9,6 +9,7 @@ using GraphQL;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
+
 using Models;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -96,30 +97,70 @@ public partial class Store : Node
 	[Signal]
 	public delegate void SystemUpdateEventHandler(string name);
 
-	private static readonly GraphQLQuery systemsQuery = new(
-		new GraphQLModels.QueryQueryBuilder()
-			.WithSystems(new GraphQLModels.SystemQueryBuilder()
-				.WithAllFields()
-				.ExceptWaypoints()
-			)
-		.Build(GraphQLModels.Formatting.None)
-	);
+	private static GraphQLQuery MakePaginatedSystemsQuery(string afterCursor, int perPage)
+	{
+		var param = new GraphQLModels.GraphQlQueryParameter<GraphQLModels.PageArgs>(
+			"page",
+			nameof(GraphQLModels.PageArgs),
+			new GraphQLModels.PageArgs
+			{
+				After = afterCursor,
+				First = perPage
+			}
+		);
+
+		var q = new GraphQLModels.QueryQueryBuilder()
+			.WithSystems(new GraphQLModels.SystemConnectionQueryBuilder()
+				.WithPageInfo(new GraphQLModels.PageInfoQueryBuilder()
+					.WithHasNextPage()
+					.WithTotalCount()
+				)
+				.WithEdges(new GraphQLModels.SystemEdgeQueryBuilder()
+					.WithCursor()
+					.WithNode(new GraphQLModels.SystemQueryBuilder()
+						.WithAllFields()
+						.ExceptWaypoints()
+					)
+				),
+				param)
+			.WithParameter(param)
+			.Build(GraphQLModels.Formatting.Indented);
+		return new GraphQLQuery(q);
+	}
+
+	private const int SYSTEMS_PER_PAGE = 100;
 
 	public async Task QuerySystems()
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SystemsResponse>(systemsQuery);
-		// TODO: check errors
+		var hasMorePages = true;
+		var nextCursor = "";
 
-		foreach (var system in resp.Data.Systems)
+		var n = 0;
+		while (hasMorePages)
 		{
-			var key = system.Name;
-			Data.systems[key] = new SystemModel
+			var query = MakePaginatedSystemsQuery(nextCursor, SYSTEMS_PER_PAGE);
+
+			var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SystemsResponse>(query);
+
+			var data = resp.Data.Systems;
+			// TODO: check errors
+			foreach (var edge in data.Edges)
 			{
-				Name = system.Name,
-				Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
-				HasJumpgates = true, // TODO: include jumpgate info in system proto
-			};
-			EmitSignal(SignalName.SystemUpdate, key);
+				var system = edge.Node;
+				var key = system.Name;
+				Data.systems[key] = new SystemModel
+				{
+					Name = system.Name,
+					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
+					HasJumpgates = system.HasJumpgates!.Value
+				};
+				EmitSignal(SignalName.SystemUpdate, key);
+				n++;
+			}
+
+			hasMorePages = data.PageInfo.HasNextPage!.Value;
+			nextCursor = data.Edges.Last().Cursor;
+			GD.Print("queried " + n + "/" + data.PageInfo.TotalCount);
 		}
 	}
 

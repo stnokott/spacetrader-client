@@ -18,5 +18,5 @@ public class ShipsResponse
 
 public class SystemsResponse
 {
-	public List<System> Systems { get; set; }
+	public SystemConnection Systems { get; set; }
 }

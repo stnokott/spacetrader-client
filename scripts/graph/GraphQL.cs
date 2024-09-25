@@ -1071,21 +1071,29 @@ namespace GraphQLModels
         public const string WaypointType = "WaypointType";
 
         public const string Agent = "Agent";
+        public const string Jumpgate = "Jumpgate";
+        public const string PageInfo = "PageInfo";
         public const string Query = "Query";
         public const string Server = "Server";
         public const string ServerAnnouncement = "ServerAnnouncement";
         public const string ServerStats = "ServerStats";
         public const string Ship = "Ship";
         public const string System = "System";
+        public const string SystemConnection = "SystemConnection";
+        public const string SystemEdge = "SystemEdge";
         public const string Waypoint = "Waypoint";
+
+        public const string PageArgs = "PageArgs";
 
         public static readonly IReadOnlyDictionary<global::System.Type, string> ReverseMapping =
             new Dictionary<global::System.Type, string>
             {
                 { typeof(string), "String" },
                 { typeof(long), "Int64" },
+                { typeof(bool), "Boolean" },
+                { typeof(int), "Int" },
                 { typeof(DateTime), "Time" },
-                { typeof(int), "Int" }
+                { typeof(PageArgs), "PageArgs" }
             };
 }
     #endregion
@@ -1256,6 +1264,107 @@ namespace GraphQLModels
         }
     }
 
+    public class JumpgateQueryBuilder : GraphQlQueryBuilder<JumpgateQueryBuilder>
+    {
+        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
+            new []
+            {
+                new GraphQlFieldMetadata { Name = "from", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
+                new GraphQlFieldMetadata { Name = "to", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) }
+            };
+
+        protected override string TypeName { get { return "Jumpgate"; } } 
+
+        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
+
+        public JumpgateQueryBuilder WithFrom(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("from", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public JumpgateQueryBuilder ExceptFrom()
+        {
+            return ExceptField("from");
+        }
+
+        public JumpgateQueryBuilder WithTo(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("to", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public JumpgateQueryBuilder ExceptTo()
+        {
+            return ExceptField("to");
+        }
+    }
+
+    public class PageInfoQueryBuilder : GraphQlQueryBuilder<PageInfoQueryBuilder>
+    {
+        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
+            new []
+            {
+                new GraphQlFieldMetadata { Name = "hasPreviousPage" },
+                new GraphQlFieldMetadata { Name = "hasNextPage" },
+                new GraphQlFieldMetadata { Name = "totalCount" },
+                new GraphQlFieldMetadata { Name = "startCursor" },
+                new GraphQlFieldMetadata { Name = "endCursor" }
+            };
+
+        protected override string TypeName { get { return "PageInfo"; } } 
+
+        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
+
+        public PageInfoQueryBuilder WithHasPreviousPage(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("hasPreviousPage", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public PageInfoQueryBuilder ExceptHasPreviousPage()
+        {
+            return ExceptField("hasPreviousPage");
+        }
+
+        public PageInfoQueryBuilder WithHasNextPage(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("hasNextPage", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public PageInfoQueryBuilder ExceptHasNextPage()
+        {
+            return ExceptField("hasNextPage");
+        }
+
+        public PageInfoQueryBuilder WithTotalCount(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("totalCount", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public PageInfoQueryBuilder ExceptTotalCount()
+        {
+            return ExceptField("totalCount");
+        }
+
+        public PageInfoQueryBuilder WithStartCursor(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("startCursor", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public PageInfoQueryBuilder ExceptStartCursor()
+        {
+            return ExceptField("startCursor");
+        }
+
+        public PageInfoQueryBuilder WithEndCursor(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("endCursor", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public PageInfoQueryBuilder ExceptEndCursor()
+        {
+            return ExceptField("endCursor");
+        }
+    }
+
     public class QueryQueryBuilder : GraphQlQueryBuilder<QueryQueryBuilder>
     {
         private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
@@ -1264,7 +1373,7 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "server", IsComplex = true, QueryBuilderType = typeof(ServerQueryBuilder) },
                 new GraphQlFieldMetadata { Name = "agent", IsComplex = true, QueryBuilderType = typeof(AgentQueryBuilder) },
                 new GraphQlFieldMetadata { Name = "ships", IsComplex = true, QueryBuilderType = typeof(ShipQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "systems", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) }
+                new GraphQlFieldMetadata { Name = "systems", IsComplex = true, QueryBuilderType = typeof(SystemConnectionQueryBuilder) }
             };
 
         protected override string TypeName { get { return "Query"; } } 
@@ -1310,9 +1419,13 @@ namespace GraphQLModels
             return ExceptField("ships");
         }
 
-        public QueryQueryBuilder WithSystems(SystemQueryBuilder systemQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        public QueryQueryBuilder WithSystems(SystemConnectionQueryBuilder systemConnectionQueryBuilder, QueryBuilderParameter<PageArgs> page = null, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
         {
-            return WithObjectField("systems", alias, systemQueryBuilder, new GraphQlDirective[] { include, skip });
+            var args = new List<QueryBuilderArgumentInfo>();
+            if (page != null)
+                args.Add(new QueryBuilderArgumentInfo { ArgumentName = "page", ArgumentValue = page} );
+
+            return WithObjectField("systems", alias, systemConnectionQueryBuilder, new GraphQlDirective[] { include, skip }, args);
         }
 
         public QueryQueryBuilder ExceptSystems()
@@ -1555,7 +1668,8 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "x" },
                 new GraphQlFieldMetadata { Name = "y" },
                 new GraphQlFieldMetadata { Name = "waypoints", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "factions", IsComplex = true }
+                new GraphQlFieldMetadata { Name = "factions", IsComplex = true },
+                new GraphQlFieldMetadata { Name = "hasJumpgates" }
             };
 
         protected override string TypeName { get { return "System"; } } 
@@ -1620,6 +1734,84 @@ namespace GraphQLModels
         public SystemQueryBuilder ExceptFactions()
         {
             return ExceptField("factions");
+        }
+
+        public SystemQueryBuilder WithHasJumpgates(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("hasJumpgates", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemQueryBuilder ExceptHasJumpgates()
+        {
+            return ExceptField("hasJumpgates");
+        }
+    }
+
+    public class SystemConnectionQueryBuilder : GraphQlQueryBuilder<SystemConnectionQueryBuilder>
+    {
+        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
+            new []
+            {
+                new GraphQlFieldMetadata { Name = "edges", IsComplex = true, QueryBuilderType = typeof(SystemEdgeQueryBuilder) },
+                new GraphQlFieldMetadata { Name = "pageInfo", IsComplex = true, QueryBuilderType = typeof(PageInfoQueryBuilder) }
+            };
+
+        protected override string TypeName { get { return "SystemConnection"; } } 
+
+        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
+
+        public SystemConnectionQueryBuilder WithEdges(SystemEdgeQueryBuilder systemEdgeQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("edges", alias, systemEdgeQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemConnectionQueryBuilder ExceptEdges()
+        {
+            return ExceptField("edges");
+        }
+
+        public SystemConnectionQueryBuilder WithPageInfo(PageInfoQueryBuilder pageInfoQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("pageInfo", alias, pageInfoQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemConnectionQueryBuilder ExceptPageInfo()
+        {
+            return ExceptField("pageInfo");
+        }
+    }
+
+    public class SystemEdgeQueryBuilder : GraphQlQueryBuilder<SystemEdgeQueryBuilder>
+    {
+        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
+            new []
+            {
+                new GraphQlFieldMetadata { Name = "cursor" },
+                new GraphQlFieldMetadata { Name = "node", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) }
+            };
+
+        protected override string TypeName { get { return "SystemEdge"; } } 
+
+        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
+
+        public SystemEdgeQueryBuilder WithCursor(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("cursor", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemEdgeQueryBuilder ExceptCursor()
+        {
+            return ExceptField("cursor");
+        }
+
+        public SystemEdgeQueryBuilder WithNode(SystemQueryBuilder systemQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithObjectField("node", alias, systemQueryBuilder, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemEdgeQueryBuilder ExceptNode()
+        {
+            return ExceptField("node");
         }
     }
 
@@ -1691,6 +1883,38 @@ namespace GraphQLModels
     }
     #endregion
 
+    #region input classes
+    public class PageArgs : IGraphQlInputObject
+    {
+        private InputPropertyInfo _first;
+        private InputPropertyInfo _after;
+
+        #if !GRAPHQL_GENERATOR_DISABLE_NEWTONSOFT_JSON
+        [JsonConverter(typeof(QueryBuilderParameterConverter<int?>))]
+        #endif
+        public QueryBuilderParameter<int?> First
+        {
+            get { return (QueryBuilderParameter<int?>)_first.Value; }
+            set { _first = new InputPropertyInfo { Name = "first", Value = value }; }
+        }
+
+        #if !GRAPHQL_GENERATOR_DISABLE_NEWTONSOFT_JSON
+        [JsonConverter(typeof(QueryBuilderParameterConverter<string>))]
+        #endif
+        public QueryBuilderParameter<string> After
+        {
+            get { return (QueryBuilderParameter<string>)_after.Value; }
+            set { _after = new InputPropertyInfo { Name = "after", Value = value }; }
+        }
+
+        IEnumerable<InputPropertyInfo> IGraphQlInputObject.GetPropertyValues()
+        {
+            if (_first.Name != null) yield return _first;
+            if (_after.Name != null) yield return _after;
+        }
+    }
+    #endregion
+
     #region data classes
     public class Agent
     {
@@ -1699,12 +1923,27 @@ namespace GraphQLModels
         public string Hq { get; set; }
     }
 
+    public class Jumpgate
+    {
+        public Waypoint From { get; set; }
+        public Waypoint To { get; set; }
+    }
+
+    public class PageInfo
+    {
+        public bool? HasPreviousPage { get; set; }
+        public bool? HasNextPage { get; set; }
+        public int? TotalCount { get; set; }
+        public string StartCursor { get; set; }
+        public string EndCursor { get; set; }
+    }
+
     public class Query
     {
         public Server Server { get; set; }
         public Agent Agent { get; set; }
         public ICollection<Ship> Ships { get; set; }
-        public ICollection<System> Systems { get; set; }
+        public SystemConnection Systems { get; set; }
     }
 
     public class Server
@@ -1747,6 +1986,19 @@ namespace GraphQLModels
         public int? Y { get; set; }
         public ICollection<Waypoint> Waypoints { get; set; }
         public ICollection<Faction> Factions { get; set; }
+        public bool? HasJumpgates { get; set; }
+    }
+
+    public class SystemConnection
+    {
+        public ICollection<SystemEdge> Edges { get; set; }
+        public PageInfo PageInfo { get; set; }
+    }
+
+    public class SystemEdge
+    {
+        public string Cursor { get; set; }
+        public System Node { get; set; }
     }
 
     public class Waypoint
