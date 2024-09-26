@@ -7,5 +7,5 @@ public struct SystemModel
 {
 	public string Name;
 	public Vector2 Pos;
-	public IReadOnlyList<WaypointModel> Waypoints;
+	public bool HasJumpgates;
 }

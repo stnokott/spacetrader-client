@@ -1,4 +1,3 @@
-using System.Linq;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -11,6 +10,8 @@ public partial class Galaxy : Node2D
 	private Area2D _cameraCollisionArea;
 	private StringName _visibleNodesGroup = new("visible_nodes");
 	private Node2D _systemNodeLayer;
+
+	private GalaxySystem? selectedSystem = null;
 
 	public override void _Ready()
 	{
@@ -38,6 +39,15 @@ public partial class Galaxy : Node2D
 			systemNode.Visible = false;
 			systemNode.RemoveFromGroup(_visibleNodesGroup);
 		};
+		GetViewport().PhysicsObjectPickingSort = true;
+		GetViewport().PhysicsObjectPickingFirstOnly = true;
+		_cameraCollisionArea.InputEvent += (_, ev, _) =>
+		{
+			if (ev is InputEventMouseButton && Input.IsActionJustReleased("ui_click"))
+			{
+				OnEmptySpaceClicked();
+			}
+		};
 
 		Store.Instance.SystemUpdate += OnSystemUpdated;
 		Store.Instance.ShipMovedFromSystem += OnShipMoved;
@@ -51,15 +61,29 @@ public partial class Galaxy : Node2D
 
 		if (node == null)
 		{
+			// create new node instance
 			node = _systemScene.Instantiate<GalaxySystem>();
 			node.Name = systemName;
 			node.Position = sys.Pos;
 			node.Scale = NodeScaleForZoom(_camera.Zoom);
+			node.Clicked += () => OnSystemClicked(node);
 			_systemNodeLayer.AddChild(node);
 		}
 
-		var hasJumpgates = sys.Waypoints.Any((wp) => wp.ConnectedWaypoints.Count > 0);
-		node.SetSystem(systemName, hasJumpgates);
+		node.SetSystem(systemName, sys.HasJumpgates);
+	}
+
+	private void OnSystemClicked(GalaxySystem node)
+	{
+		selectedSystem?.Deselect();
+		selectedSystem = node;
+		node.Select();
+	}
+
+	private void OnEmptySpaceClicked()
+	{
+		selectedSystem?.Deselect();
+		selectedSystem = null;
 	}
 
 	private void OnShipMoved(string _, string systemName)

@@ -1,3 +1,6 @@
+using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
+using System.Reflection;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -10,6 +13,8 @@ public partial class GalaxySystem : Sprite2D
 	private Area2D _mouseArea;
 	private AnimationPlayer _animationPlayer;
 
+	private bool selected = false;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -20,13 +25,15 @@ public partial class GalaxySystem : Sprite2D
 		_mouseArea = GetNode<Area2D>("%MouseArea");
 		_animationPlayer = GetNode<AnimationPlayer>("%AnimationPlayer");
 
-		_mouseArea.MouseEntered += () =>
+		_mouseArea.MouseEntered += OnMouseEntered;
+		_mouseArea.MouseExited += OnMouseExited;
+
+		_mouseArea.InputEvent += (_, ev, _) =>
 		{
-			_animationPlayer.Play("fade_in");
-		};
-		_mouseArea.MouseExited += () =>
-		{
-			_animationPlayer.PlayBackwards("fade_in");
+			if (ev is InputEventMouseButton && Input.IsActionJustReleased("ui_click"))
+			{
+				OnClicked();
+			}
 		};
 
 		SetShipCount(0);
@@ -48,6 +55,46 @@ public partial class GalaxySystem : Sprite2D
 		{
 			_shipIcon.TooltipText = "Contains " + n + " of your ships";
 		}
+	}
+
+	private void OnMouseEntered()
+	{
+		// keep state if selected
+		if (selected)
+		{
+			return;
+		}
+		_animationPlayer.Play("fade_in");
+	}
+
+	private void OnMouseExited()
+	{
+		// keep state if selected
+		if (selected)
+		{
+			return;
+		}
+		_animationPlayer.PlayBackwards("fade_in");
+	}
+
+	[Signal]
+	public delegate void ClickedEventHandler();
+
+	private void OnClicked()
+	{
+		EmitSignal(SignalName.Clicked);
+	}
+
+	public void Select()
+	{
+		selected = true;
+		OnMouseEntered();
+	}
+
+	public void Deselect()
+	{
+		selected = false;
+		OnMouseExited();
 	}
 }
 

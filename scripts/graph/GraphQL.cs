@@ -1071,7 +1071,6 @@ namespace GraphQLModels
         public const string WaypointType = "WaypointType";
 
         public const string Agent = "Agent";
-        public const string Jumpgate = "Jumpgate";
         public const string PageInfo = "PageInfo";
         public const string Query = "Query";
         public const string Server = "Server";
@@ -1261,40 +1260,6 @@ namespace GraphQLModels
         public AgentQueryBuilder ExceptHq()
         {
             return ExceptField("hq");
-        }
-    }
-
-    public class JumpgateQueryBuilder : GraphQlQueryBuilder<JumpgateQueryBuilder>
-    {
-        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
-            new []
-            {
-                new GraphQlFieldMetadata { Name = "from", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "to", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) }
-            };
-
-        protected override string TypeName { get { return "Jumpgate"; } } 
-
-        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
-
-        public JumpgateQueryBuilder WithFrom(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithObjectField("from", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
-        }
-
-        public JumpgateQueryBuilder ExceptFrom()
-        {
-            return ExceptField("from");
-        }
-
-        public JumpgateQueryBuilder WithTo(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithObjectField("to", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
-        }
-
-        public JumpgateQueryBuilder ExceptTo()
-        {
-            return ExceptField("to");
         }
     }
 
@@ -1668,6 +1633,7 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "x" },
                 new GraphQlFieldMetadata { Name = "y" },
                 new GraphQlFieldMetadata { Name = "waypoints", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
+                new GraphQlFieldMetadata { Name = "hasJumpgates" },
                 new GraphQlFieldMetadata { Name = "factions", IsComplex = true }
             };
 
@@ -1723,6 +1689,16 @@ namespace GraphQLModels
         public SystemQueryBuilder ExceptWaypoints()
         {
             return ExceptField("waypoints");
+        }
+
+        public SystemQueryBuilder WithHasJumpgates(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            return WithScalarField("hasJumpgates", alias, new GraphQlDirective[] { include, skip });
+        }
+
+        public SystemQueryBuilder ExceptHasJumpgates()
+        {
+            return ExceptField("hasJumpgates");
         }
 
         public SystemQueryBuilder WithFactions(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
@@ -1923,12 +1899,6 @@ namespace GraphQLModels
         public string Hq { get; set; }
     }
 
-    public class Jumpgate
-    {
-        public Waypoint From { get; set; }
-        public Waypoint To { get; set; }
-    }
-
     public class PageInfo
     {
         public bool? HasPreviousPage { get; set; }
@@ -1985,6 +1955,7 @@ namespace GraphQLModels
         public int? X { get; set; }
         public int? Y { get; set; }
         public ICollection<Waypoint> Waypoints { get; set; }
+        public bool? HasJumpgates { get; set; }
         public ICollection<Faction> Factions { get; set; }
     }
 

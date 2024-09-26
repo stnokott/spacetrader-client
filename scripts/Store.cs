@@ -121,16 +121,12 @@ public partial class Store : Node
 						.WithName()
 						.WithX()
 						.WithY()
-						.WithWaypoints(new GraphQLModels.WaypointQueryBuilder()
-							.WithConnectedTo(new GraphQLModels.WaypointQueryBuilder()
-								.WithName()
-							)
-						)
+						.WithHasJumpgates()
 					)
 				),
 				param)
 			.WithParameter(param)
-			.Build(GraphQLModels.Formatting.Indented);
+			.Build(GraphQLModels.Formatting.None);
 		return new GraphQLQuery(q);
 	}
 
@@ -155,17 +151,11 @@ public partial class Store : Node
 				var system = edge.Node;
 				var key = system.Name;
 
-				var waypoints = system.Waypoints.Select((wp) => new WaypointModel
-				{
-					Name = wp.Name,
-					ConnectedWaypoints = wp.ConnectedTo.Select((conn) => conn.Name).ToList().AsReadOnly()
-				});
-
 				Data.systems[key] = new SystemModel
 				{
 					Name = system.Name,
 					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
-					Waypoints = waypoints.ToList().AsReadOnly()
+					HasJumpgates = system.HasJumpgates!.Value
 				};
 				EmitSignal(SignalName.SystemUpdate, key);
 				n++;

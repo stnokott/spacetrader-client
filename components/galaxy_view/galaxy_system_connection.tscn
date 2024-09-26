@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dvmdsrnh1nfsp"]
+
+[sub_resource type="Gradient" id="Gradient_rxrs6"]
+colors = PackedColorArray(0.368627, 0.654902, 1, 0.588235, 1, 1, 1, 0.588235)
+
+[node name="Line2D" type="Line2D"]
+z_index = -1
+points = PackedVector2Array(0, 0, 500, 500)
+width = 5.0
+gradient = SubResource("Gradient_rxrs6")
