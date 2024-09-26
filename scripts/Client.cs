@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Godot;
 
@@ -22,14 +20,14 @@ public partial class Client : Node
 	{
 		async Task runTask(Func<IProgress<float>, Task> taskFunc, string name, float progressChunk)
 		{
-			var progress = new Progress<float>();
-			progress.ProgressChanged += (_, p) => SetSyncProgress(name, p);
+			SetSyncProgress(name, 0f);
+			var progress = new Progress<float>((p) => SetSyncProgress(name, p));
 			await taskFunc(progress);
 		}
 
 		await runTask(Store.Instance.QueryServer, "Getting Server Status", 0.25f);
 		await runTask(Store.Instance.QueryAgent, "Loading Agent", 0.25f);
-		await runTask(Store.Instance.QuerySystems, "Loading Systems", 0.25f);
+		await runTask(Store.Instance.QuerySystems, "Loading Galaxy", 0.25f);
 		await runTask(Store.Instance.QueryShips, "Loading Fleet", 0.25f);
 
 		_loadingOverlay.Hide();
