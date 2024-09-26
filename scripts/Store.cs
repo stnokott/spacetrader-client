@@ -154,11 +154,18 @@ public partial class Store : Node
 			{
 				var system = edge.Node;
 				var key = system.Name;
+
+				var waypoints = system.Waypoints.Select((wp) => new WaypointModel
+				{
+					Name = wp.Name,
+					ConnectedWaypoints = wp.ConnectedTo.Select((conn) => conn.Name).ToList().AsReadOnly()
+				});
+
 				Data.systems[key] = new SystemModel
 				{
 					Name = system.Name,
 					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
-					HasJumpgates = system.Waypoints.Any((wp) => wp.ConnectedTo.Count > 0)
+					Waypoints = waypoints.ToList().AsReadOnly()
 				};
 				EmitSignal(SignalName.SystemUpdate, key);
 				n++;

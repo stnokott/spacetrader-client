@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -57,7 +58,8 @@ public partial class Galaxy : Node2D
 			_systemNodeLayer.AddChild(node);
 		}
 
-		node.SetSystem(systemName, sys.HasJumpgates);
+		var hasJumpgates = sys.Waypoints.Any((wp) => wp.ConnectedWaypoints.Count > 0);
+		node.SetSystem(systemName, hasJumpgates);
 	}
 
 	private void OnShipMoved(string _, string systemName)
