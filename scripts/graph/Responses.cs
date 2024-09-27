@@ -20,3 +20,8 @@ public class SystemsResponse
 {
 	public SystemConnection Systems { get; set; }
 }
+
+public class SingleSystemResponse
+{
+	public System System { get; set; }
+}

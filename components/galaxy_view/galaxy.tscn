@@ -109,9 +109,11 @@ repeat_size = Vector2(1024, 1024)
 repeat_times = 3
 
 [node name="Nebula" type="Sprite2D" parent="ParallaxBackground/ParallaxBackground"]
+texture_filter = 3
 texture = ExtResource("2_3d1ie")
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxBackground"]
+texture_filter = 3
 texture = ExtResource("5_w4cjl")
 
 [node name="ParallaxStarsMany1" type="Parallax2D" parent="ParallaxBackground"]
@@ -120,6 +122,7 @@ repeat_size = Vector2(1024, 1024)
 repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany1"]
+texture_filter = 3
 texture = ExtResource("4_dpr23")
 
 [node name="ParallaxStarsMany2" type="Parallax2D" parent="ParallaxBackground"]
@@ -129,6 +132,7 @@ repeat_times = 3
 screen_offset = Vector2(100, 100)
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsMany2"]
+texture_filter = 3
 texture = ExtResource("5_w4cjl")
 
 [node name="ParallaxStarsFew1" type="Parallax2D" parent="ParallaxBackground"]
@@ -137,6 +141,7 @@ repeat_size = Vector2(1024, 1024)
 repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew1"]
+texture_filter = 3
 texture = ExtResource("6_5pf22")
 
 [node name="ParallaxStarsFew2" type="Parallax2D" parent="ParallaxBackground"]
@@ -146,6 +151,7 @@ repeat_times = 3
 screen_offset = Vector2(150, 150)
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew2"]
+texture_filter = 3
 texture = ExtResource("6_waa20")
 
 [node name="ParallaxStarsFew3" type="Parallax2D" parent="ParallaxBackground"]
@@ -154,6 +160,7 @@ repeat_size = Vector2(1024, 1024)
 repeat_times = 3
 
 [node name="Stars" type="Sprite2D" parent="ParallaxBackground/ParallaxStarsFew3"]
+texture_filter = 3
 texture = ExtResource("6_5pf22")
 
 [node name="SystemNodeLayer" type="Node2D" parent="."]

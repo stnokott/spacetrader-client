@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -9,7 +10,6 @@ using GraphQL;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
-
 using Models;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -126,8 +126,8 @@ public partial class Store : Node
 				),
 				param)
 			.WithParameter(param)
-			.Build(GraphQLModels.Formatting.None);
-		return new GraphQLQuery(q);
+		;
+		return new GraphQLQuery(q.Build(GraphQLModels.Formatting.None));
 	}
 
 	private const int SYSTEMS_PER_PAGE = 100;
@@ -165,6 +165,38 @@ public partial class Store : Node
 			nextCursor = data.Edges.Last().Cursor;
 			progress.Report((float)n / data.PageInfo.TotalCount!.Value);
 		}
+	}
+
+	private static GraphQLQuery MakeSystemQuery(string id)
+	{
+		var builder = new GraphQLModels.QueryQueryBuilder()
+			.WithSystem(new GraphQLModels.SystemQueryBuilder()
+				.WithWaypoints(new GraphQLModels.WaypointQueryBuilder()
+					.WithConnectedTo(new GraphQLModels.WaypointQueryBuilder()
+						.WithSystem(new GraphQLModels.SystemQueryBuilder()
+							.WithName()
+						)
+					)
+				), id
+			)
+		;
+		return new GraphQLQuery(builder.Build(GraphQLModels.Formatting.None));
+	}
+
+	public async Task<DetailedSystemModel> QuerySystem(string id)
+	{
+		var q = MakeSystemQuery(id);
+		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SingleSystemResponse>(q);
+		// TODO: error handling
+
+		var connectedSystems = resp.Data.System.Waypoints.SelectMany((wp) =>
+		{
+			return wp.ConnectedTo.Select((wpConnected) => wpConnected.System.Name);
+		});
+		return new DetailedSystemModel
+		{
+			connectedSystems = connectedSystems.ToHashSet()
+		};
 	}
 
 	[Signal]

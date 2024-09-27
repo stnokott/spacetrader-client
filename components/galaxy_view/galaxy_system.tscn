@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://components/galaxy_view/GalaxySystem.cs" id="1_khsck"]
 [ext_resource type="Texture2D" uid="uid://csu2uokis5tew" path="res://textures/galaxy/system.png" id="1_w72gg"]
 [ext_resource type="Texture2D" uid="uid://dhhwxy20rco54" path="res://textures/ship_generic.png" id="2_02uyh"]
-[ext_resource type="Texture2D" uid="uid://hcivdibihdv1" path="res://textures/galaxy/system_outline.png" id="3_2mngl"]
+[ext_resource type="Texture2D" uid="uid://hcivdibihdv1" path="res://textures/galaxy/system_has_jumpgate.png" id="3_2mngl"]
 
 [sub_resource type="Animation" id="Animation_g20w8"]
 length = 0.001
@@ -32,7 +32,7 @@ tracks/1/keys = {
 "values": [Color(0.180392, 0.780392, 0.341176, 1)]
 }
 
-[sub_resource type="Animation" id="Animation_6eos5"]
+[sub_resource type="Animation" id="Animation_2yu7q"]
 resource_name = "fade_in"
 length = 0.1
 tracks/0/type = "value"
@@ -63,7 +63,7 @@ tracks/1/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_vy804"]
 _data = {
 "RESET": SubResource("Animation_g20w8"),
-"fade_in": SubResource("Animation_6eos5")
+"fade_in": SubResource("Animation_2yu7q")
 }
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tpbo3"]
@@ -82,6 +82,9 @@ root_node = NodePath("../SystemNameLabel")
 libraries = {
 "": SubResource("AnimationLibrary_vy804")
 }
+
+[node name="JumpgateConnectionLayer" type="Node2D" parent="."]
+unique_name_in_owner = true
 
 [node name="MouseArea" type="Area2D" parent="."]
 unique_name_in_owner = true

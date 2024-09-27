@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hcivdibihdv1"
-path="res://.godot/imported/system_outline.png-fed0806f32939f7b6f26e608b1488d82.ctex"
+path="res://.godot/imported/system_has_jumpgate.png-ef645b5cf47a9f35c3ec399b9aa50166.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/galaxy/system_outline.png"
-dest_files=["res://.godot/imported/system_outline.png-fed0806f32939f7b6f26e608b1488d82.ctex"]
+source_file="res://textures/galaxy/system_has_jumpgate.png"
+dest_files=["res://.godot/imported/system_has_jumpgate.png-ef645b5cf47a9f35c3ec399b9aa50166.ctex"]
 
 [params]
 

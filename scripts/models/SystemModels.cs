@@ -9,3 +9,8 @@ public struct SystemModel
 	public Vector2 Pos;
 	public bool HasJumpgates;
 }
+
+public struct DetailedSystemModel
+{
+	public IReadOnlySet<string> connectedSystems;
+}

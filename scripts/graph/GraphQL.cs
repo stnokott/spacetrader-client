@@ -1338,7 +1338,8 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "server", IsComplex = true, QueryBuilderType = typeof(ServerQueryBuilder) },
                 new GraphQlFieldMetadata { Name = "agent", IsComplex = true, QueryBuilderType = typeof(AgentQueryBuilder) },
                 new GraphQlFieldMetadata { Name = "ships", IsComplex = true, QueryBuilderType = typeof(ShipQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "systems", IsComplex = true, QueryBuilderType = typeof(SystemConnectionQueryBuilder) }
+                new GraphQlFieldMetadata { Name = "systems", IsComplex = true, QueryBuilderType = typeof(SystemConnectionQueryBuilder) },
+                new GraphQlFieldMetadata { Name = "system", RequiresParameters = true, IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) }
             };
 
         protected override string TypeName { get { return "Query"; } } 
@@ -1396,6 +1397,18 @@ namespace GraphQLModels
         public QueryQueryBuilder ExceptSystems()
         {
             return ExceptField("systems");
+        }
+
+        public QueryQueryBuilder WithSystem(SystemQueryBuilder systemQueryBuilder, QueryBuilderParameter<string> id, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        {
+            var args = new List<QueryBuilderArgumentInfo>();
+            args.Add(new QueryBuilderArgumentInfo { ArgumentName = "id", ArgumentValue = id} );
+            return WithObjectField("system", alias, systemQueryBuilder, new GraphQlDirective[] { include, skip }, args);
+        }
+
+        public QueryQueryBuilder ExceptSystem()
+        {
+            return ExceptField("system");
         }
     }
 
@@ -1914,6 +1927,7 @@ namespace GraphQLModels
         public Agent Agent { get; set; }
         public ICollection<Ship> Ships { get; set; }
         public SystemConnection Systems { get; set; }
+        public System System { get; set; }
     }
 
     public class Server

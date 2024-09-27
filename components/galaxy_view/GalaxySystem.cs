@@ -1,6 +1,4 @@
-using System.Diagnostics.Metrics;
-using System.Diagnostics.Tracing;
-using System.Reflection;
+using System.Collections.Generic;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -8,8 +6,21 @@ using Godot;
 public partial class GalaxySystem : Sprite2D
 {
 	private Label _systemNameLabel;
+	public string SystemName
+	{
+		get
+		{
+			return _systemNameLabel.Text;
+		}
+		set
+		{
+			_systemNameLabel.Text = value;
+		}
+	}
 	private TextureRect _shipIcon;
 	private Sprite2D _jumpgateIcon;
+	private Node2D _jumpgateConnectionLayer;
+
 	private Area2D _mouseArea;
 	private AnimationPlayer _animationPlayer;
 
@@ -21,6 +32,7 @@ public partial class GalaxySystem : Sprite2D
 		_systemNameLabel = GetNode<Label>("%SystemNameLabel");
 		_shipIcon = GetNode<TextureRect>("%ShipIcon");
 		_jumpgateIcon = GetNode<Sprite2D>("%JumpgateIcon");
+		_jumpgateConnectionLayer = GetNode<Node2D>("%JumpgateConnectionLayer");
 
 		_mouseArea = GetNode<Area2D>("%MouseArea");
 		_animationPlayer = GetNode<AnimationPlayer>("%AnimationPlayer");
@@ -42,7 +54,7 @@ public partial class GalaxySystem : Sprite2D
 	public void SetSystem(string name, bool hasJumpgates)
 	{
 		// set system name
-		_systemNameLabel.Text = name;
+		SystemName = name;
 		// set jump gate
 		_jumpgateIcon.Visible = hasJumpgates;
 	}
@@ -85,16 +97,29 @@ public partial class GalaxySystem : Sprite2D
 		EmitSignal(SignalName.Clicked);
 	}
 
-	public void Select()
+	private static readonly PackedScene _systemConnectionScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system_connection.tscn");
+
+	private static readonly StringName _systemConnectionGroup = new("system_connections");
+	public void Select(IEnumerable<Vector2> connections)
 	{
+		foreach (var connPos in connections)
+		{
+			var node = _systemConnectionScene.Instantiate<GalaxySystemConnection>();
+			node.Position = Vector2.Zero;
+			node.SetPointPosition(1, connPos - Position);
+			node.AddToGroup(_systemConnectionGroup);
+			_jumpgateConnectionLayer.AddChild(node);
+		}
+
 		selected = true;
-		OnMouseEntered();
 	}
 
 	public void Deselect()
 	{
+		GetTree().CallGroup(_systemConnectionGroup, MethodName.QueueFree);
+
 		selected = false;
-		OnMouseExited();
+		OnMouseExited(); // replay exit animation to fade out
 	}
 }
 

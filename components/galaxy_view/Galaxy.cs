@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -26,26 +28,31 @@ public partial class Galaxy : Node2D
 		// to iterate all ~9000 system nodes.
 		// additionally, we set Visible=false for nodes not in the camera's
 		// viewport since Godot doesn't perform 2D culling at the time of writing.
-		_cameraCollisionArea.AreaEntered += (area) =>
+		_cameraCollisionArea.AreaEntered += (systemArea) =>
 		{
-			var systemNode = area.GetParent<GalaxySystem>();
+			var systemNode = systemArea.GetParent<GalaxySystem>();
 			systemNode.Visible = true;
 			systemNode.Scale = NodeScaleForZoom(_camera.Zoom);
 			systemNode.AddToGroup(_visibleNodesGroup);
 		};
-		_cameraCollisionArea.AreaExited += (area) =>
+		_cameraCollisionArea.AreaExited += (systemArea) =>
 		{
-			var systemNode = area.GetParent<GalaxySystem>();
-			systemNode.Visible = false;
+			var systemNode = systemArea.GetParent<GalaxySystem>();
+			if (systemNode != selectedSystem)
+			{
+				// only hide if not selected
+				systemNode.Visible = false;
+			}
 			systemNode.RemoveFromGroup(_visibleNodesGroup);
 		};
+		// enable physics object picking so that click events on system nodes don't propagate.
 		GetViewport().PhysicsObjectPickingSort = true;
 		GetViewport().PhysicsObjectPickingFirstOnly = true;
 		_cameraCollisionArea.InputEvent += (_, ev, _) =>
 		{
 			if (ev is InputEventMouseButton && Input.IsActionJustReleased("ui_click"))
 			{
-				OnEmptySpaceClicked();
+				DeselectSystem();
 			}
 		};
 
@@ -73,16 +80,35 @@ public partial class Galaxy : Node2D
 		node.SetSystem(systemName, sys.HasJumpgates);
 	}
 
-	private void OnSystemClicked(GalaxySystem node)
+	private async void OnSystemClicked(GalaxySystem node)
 	{
-		selectedSystem?.Deselect();
+		if (node == selectedSystem)
+		{
+			return;
+		}
+		DeselectSystem();
 		selectedSystem = node;
-		node.Select();
+
+		var system = await Store.Instance.QuerySystem(node.SystemName);
+		var connections = system.connectedSystems.Select((systemName) =>
+		{
+			// get system position by id from node
+			return _systemNodeLayer.GetNode<Node2D>(systemName).Position;
+		});
+		node.Select(connections);
 	}
 
-	private void OnEmptySpaceClicked()
+	private void DeselectSystem()
 	{
-		selectedSystem?.Deselect();
+		if (selectedSystem == null)
+		{
+			return;
+		}
+		selectedSystem.Deselect();
+		if (!selectedSystem.IsInGroup(_visibleNodesGroup))
+		{
+			selectedSystem.Visible = false;
+		}
 		selectedSystem = null;
 	}
 
