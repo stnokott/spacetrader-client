@@ -15,6 +15,7 @@ public partial class GalaxySystemConnection : Line2D
 	public override async void _ExitTree()
 	{
 		_animationPlayer.PlayBackwards("fade_in");
+		// ReSharper disable once AccessToStaticMemberViaDerivedType
 		await ToSignal(_animationPlayer, AnimationPlayer.SignalName.AnimationFinished);
 	}
 }

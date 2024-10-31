@@ -6,14 +6,14 @@ using Godot;
 
 public partial class Galaxy : Node2D
 {
-	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
+	private static readonly PackedScene SystemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
 
 	private Camera2D _camera;
 	private Area2D _cameraCollisionArea;
 	private StringName _visibleNodesGroup = new("visible_nodes");
 	private Node2D _systemNodeLayer;
 
-	private GalaxySystem? selectedSystem = null;
+	private GalaxySystem? _selectedSystem = null;
 
 	public override void _Ready()
 	{
@@ -38,7 +38,7 @@ public partial class Galaxy : Node2D
 		_cameraCollisionArea.AreaExited += (systemArea) =>
 		{
 			var systemNode = systemArea.GetParent<GalaxySystem>();
-			if (systemNode != selectedSystem)
+			if (systemNode != _selectedSystem)
 			{
 				// only hide if not selected
 				systemNode.Visible = false;
@@ -69,7 +69,7 @@ public partial class Galaxy : Node2D
 		if (node == null)
 		{
 			// create new node instance
-			node = _systemScene.Instantiate<GalaxySystem>();
+			node = SystemScene.Instantiate<GalaxySystem>();
 			node.Name = systemName;
 			node.Position = sys.Pos;
 			node.Scale = NodeScaleForZoom(_camera.Zoom);
@@ -82,34 +82,30 @@ public partial class Galaxy : Node2D
 
 	private async void OnSystemClicked(GalaxySystem node)
 	{
-		if (node == selectedSystem)
+		if (node == _selectedSystem)
 		{
 			return;
 		}
 		DeselectSystem();
-		selectedSystem = node;
+		_selectedSystem = node;
 
 		var system = await Store.Instance.QuerySystem(node.SystemName);
-		var connections = system.connectedSystems.Select((systemName) =>
-		{
-			// get system position by id from node
-			return _systemNodeLayer.GetNode<Node2D>(systemName).Position;
-		});
+		var connections = system.connectedSystems.Select((systemName) => _systemNodeLayer.GetNode<Node2D>(systemName).Position);
 		node.Select(connections);
 	}
 
 	private void DeselectSystem()
 	{
-		if (selectedSystem == null)
+		if (_selectedSystem == null)
 		{
 			return;
 		}
-		selectedSystem.Deselect();
-		if (!selectedSystem.IsInGroup(_visibleNodesGroup))
+		_selectedSystem.Deselect();
+		if (!_selectedSystem.IsInGroup(_visibleNodesGroup))
 		{
-			selectedSystem.Visible = false;
+			_selectedSystem.Visible = false;
 		}
-		selectedSystem = null;
+		_selectedSystem = null;
 	}
 
 	private void OnShipMoved(string _, string systemName)

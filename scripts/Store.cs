@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -11,6 +10,7 @@ using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
 using Models;
+// ReSharper disable RedundantArgumentDefaultValue
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
@@ -18,15 +18,15 @@ public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
-	public Data Data = new();
+	public readonly Data Data = new();
 
-	private GraphQLHttpClient graphQLClient;
+	private GraphQLHttpClient _graphQlClient;
 
 	public override void _Ready()
 	{
 		Instance = this;
 
-		graphQLClient = new GraphQLHttpClient(
+		_graphQlClient = new GraphQLHttpClient(
 			new GraphQLHttpClientOptions
 			{
 				EndPoint = new Uri("http://localhost:55555/graphql"),
@@ -38,7 +38,7 @@ public partial class Store : Node
 
 	public override void _ExitTree()
 	{
-		graphQLClient.Dispose();
+		_graphQlClient.Dispose();
 		base._ExitTree();
 	}
 
@@ -46,7 +46,7 @@ public partial class Store : Node
 	[Signal]
 	public delegate void ServerInfoUpdateEventHandler();
 
-	private static readonly GraphQLQuery serverQuery = new(
+	private static readonly GraphQLQuery ServerQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 			.WithServer(new GraphQLModels.ServerQueryBuilder()
 				.WithVersion()
@@ -57,10 +57,10 @@ public partial class Store : Node
 
 	public async Task QueryServer(IProgress<float> _)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ServerResponse>(serverQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.ServerResponse>(ServerQuery);
 		var server = resp.Data.Server; // TODO: check errors
 
-		Data.ServerStatus = new()
+		Data.ServerStatus = new ServerStatusModel
 		{
 			Version = server.Version,
 			NextReset = server.NextReset
@@ -72,7 +72,7 @@ public partial class Store : Node
 	[Signal]
 	public delegate void AgentInfoUpdateEventHandler();
 
-	private static readonly GraphQLQuery agentQuery = new(
+	private static readonly GraphQLQuery AgentQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 			.WithAgent(new GraphQLModels.AgentQueryBuilder()
 				.WithName()
@@ -83,10 +83,10 @@ public partial class Store : Node
 
 	public async Task QueryAgent(IProgress<float> progress)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.AgentResponse>(agentQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.AgentResponse>(AgentQuery);
 		var agent = resp.Data.Agent; // TODO: check errors
 
-		Data.Agent = new()
+		Data.Agent = new AgentInfoModel
 		{
 			Name = agent.Name,
 			Credits = agent.Credits
@@ -130,7 +130,7 @@ public partial class Store : Node
 		return new GraphQLQuery(q.Build(GraphQLModels.Formatting.None));
 	}
 
-	private const int SYSTEMS_PER_PAGE = 100;
+	private const int SystemsPerPage = 100;
 
 	public async Task QuerySystems(IProgress<float> progress)
 	{
@@ -140,9 +140,9 @@ public partial class Store : Node
 		var n = 0;
 		while (hasMorePages)
 		{
-			var query = MakePaginatedSystemsQuery(nextCursor, SYSTEMS_PER_PAGE);
+			var query = MakePaginatedSystemsQuery(nextCursor, SystemsPerPage);
 
-			var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SystemsResponse>(query);
+			var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.SystemsResponse>(query);
 
 			var data = resp.Data.Systems;
 			// TODO: check errors
@@ -154,7 +154,7 @@ public partial class Store : Node
 				Data.systems[key] = new SystemModel
 				{
 					Name = system.Name,
-					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
+					Pos = new Vector2I(system.X!.Value, system.Y!.Value),
 					HasJumpgates = system.HasJumpgates!.Value
 				};
 				EmitSignal(SignalName.SystemUpdate, key);
@@ -186,7 +186,7 @@ public partial class Store : Node
 	public async Task<DetailedSystemModel> QuerySystem(string id)
 	{
 		var q = MakeSystemQuery(id);
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SingleSystemResponse>(q);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.SingleSystemResponse>(q);
 		// TODO: error handling
 
 		var connectedSystems = resp.Data.System.Waypoints.SelectMany((wp) =>
@@ -206,7 +206,7 @@ public partial class Store : Node
 	[Signal]
 	public delegate void ShipMovedToSystemEventHandler(string ship, string system);
 
-	private static readonly GraphQLQuery shipsQuery = new(
+	private static readonly GraphQLQuery ShipsQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 		.WithShips(new GraphQLModels.ShipQueryBuilder()
 			.WithName()
@@ -219,7 +219,7 @@ public partial class Store : Node
 
 	public async Task QueryShips(IProgress<float> progress)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ShipsResponse>(shipsQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.ShipsResponse>(ShipsQuery);
 		// TODO: check errors
 
 		for (var i = 0; i < resp.Data.Ships.Count; i++)
@@ -231,7 +231,7 @@ public partial class Store : Node
 			var newShip = new ShipModel
 			{
 				Name = ship.Name,
-				Status = (GraphQLModels.ShipStatus)ship!.Status!,
+				Status = (GraphQLModels.ShipStatus)ship.Status!,
 				SystemName = ship.System.Name,
 				WaypointName = ship.Waypoint.Name
 			};
@@ -267,20 +267,8 @@ public class Data
 	public AgentInfoModel Agent = new() { Name = "!AGENTNAME", Credits = 0 };
 
 	internal readonly ConcurrentDictionary<string, SystemModel> systems = new();
-	public ReadOnlyDictionary<string, SystemModel> Systems
-	{
-		get
-		{
-			return new ReadOnlyDictionary<string, SystemModel>(systems);
-		}
-	}
+	public ReadOnlyDictionary<string, SystemModel> Systems => new(systems);
 
 	internal readonly ConcurrentDictionary<string, ShipModel> ships = new();
-	public ReadOnlyDictionary<string, ShipModel> Ships
-	{
-		get
-		{
-			return new ReadOnlyDictionary<string, ShipModel>(ships);
-		}
-	}
+	public ReadOnlyDictionary<string, ShipModel> Ships => new(ships);
 }

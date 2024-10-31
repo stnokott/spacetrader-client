@@ -16,7 +16,7 @@ public partial class ShipList : VBoxContainer
 		Store.Instance.ShipUpdate += OnShipUpdated;
 	}
 
-	private static readonly PackedScene _shipItemScene = GD.Load<PackedScene>("res://components/shiplist/ship_list_item.tscn");
+	private static readonly PackedScene ShipItemScene = GD.Load<PackedScene>("res://components/shiplist/ship_list_item.tscn");
 
 	private void OnShipUpdated(string shipName)
 	{
@@ -26,7 +26,7 @@ public partial class ShipList : VBoxContainer
 		if (node == null)
 		{
 			// create new node if null
-			node = _shipItemScene.Instantiate<ShipListItem>();
+			node = ShipItemScene.Instantiate<ShipListItem>();
 			_shipListContainer.AddChild(node);
 			node.Name = ship.Name; // set node name for identification
 		}
