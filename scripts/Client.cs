@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Godot;
 
@@ -20,17 +18,17 @@ public partial class Client : Node
 
 	private async void InitialSync()
 	{
-		async Task runTask(Func<IProgress<float>, Task> taskFunc, string name, float progressChunk)
+		async Task runTask(Func<IProgress<float>, Task> taskFunc, string name)
 		{
-			var progress = new Progress<float>();
-			progress.ProgressChanged += (_, p) => SetSyncProgress(name, p);
+			SetSyncProgress(name, 0f);
+			var progress = new Progress<float>((p) => SetSyncProgress(name, p));
 			await taskFunc(progress);
 		}
 
-		await runTask(Store.Instance.QueryServer, "Getting Server Status", 0.25f);
-		await runTask(Store.Instance.QueryAgent, "Loading Agent", 0.25f);
-		await runTask(Store.Instance.QuerySystems, "Loading Systems", 0.25f);
-		await runTask(Store.Instance.QueryShips, "Loading Fleet", 0.25f);
+		await runTask(Store.Instance.QueryServer, "Getting Server Status");
+		await runTask(Store.Instance.QueryAgent, "Loading Agent");
+		await runTask(Store.Instance.QuerySystems, "Loading Galaxy");
+		await runTask(Store.Instance.QueryShips, "Loading Fleet");
 
 		_loadingOverlay.Hide();
 		// only required initially, so can be removed for good

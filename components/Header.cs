@@ -1,3 +1,4 @@
+using System.Globalization;
 using Godot;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
@@ -25,7 +26,7 @@ public partial class Header : MarginContainer
 	{
 		var status = Store.Instance.Data.ServerStatus;
 		_serverVersionLabeL.Text = "SpaceTraders " + status.Version;
-		_serverResetLabel.Text = status.NextReset.ToLocalTime().ToString();
+		_serverResetLabel.Text = status.NextReset.ToLocalTime().ToString(CultureInfo.CurrentCulture);
 	}
 
 	private void OnAgentInfoUpdated()

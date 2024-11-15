@@ -1,15 +1,20 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Godot;
+using Models;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
 public partial class Galaxy : Node2D
 {
-	private static readonly PackedScene _systemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
+	private static readonly PackedScene SystemScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system.tscn");
 
 	private Camera2D _camera;
 	private Area2D _cameraCollisionArea;
 	private StringName _visibleNodesGroup = new("visible_nodes");
 	private Node2D _systemNodeLayer;
+
+	private GalaxySystem? _selectedSystem = null;
 
 	public override void _Ready()
 	{
@@ -24,18 +29,32 @@ public partial class Galaxy : Node2D
 		// to iterate all ~9000 system nodes.
 		// additionally, we set Visible=false for nodes not in the camera's
 		// viewport since Godot doesn't perform 2D culling at the time of writing.
-		_cameraCollisionArea.AreaEntered += (area) =>
+		_cameraCollisionArea.AreaEntered += (systemArea) =>
 		{
-			var systemNode = area.GetParent<GalaxySystem>();
+			var systemNode = systemArea.GetParent<GalaxySystem>();
 			systemNode.Visible = true;
 			systemNode.Scale = NodeScaleForZoom(_camera.Zoom);
 			systemNode.AddToGroup(_visibleNodesGroup);
 		};
-		_cameraCollisionArea.AreaExited += (area) =>
+		_cameraCollisionArea.AreaExited += (systemArea) =>
 		{
-			var systemNode = area.GetParent<GalaxySystem>();
-			systemNode.Visible = false;
+			var systemNode = systemArea.GetParent<GalaxySystem>();
+			if (systemNode != _selectedSystem)
+			{
+				// only hide if not selected
+				systemNode.Visible = false;
+			}
 			systemNode.RemoveFromGroup(_visibleNodesGroup);
+		};
+		// enable physics object picking so that click events on system nodes don't propagate.
+		GetViewport().PhysicsObjectPickingSort = true;
+		GetViewport().PhysicsObjectPickingFirstOnly = true;
+		_cameraCollisionArea.InputEvent += (_, ev, _) =>
+		{
+			if (ev is InputEventMouseButton && Input.IsActionJustReleased("ui_click"))
+			{
+				DeselectSystem();
+			}
 		};
 
 		Store.Instance.SystemUpdate += OnSystemUpdated;
@@ -50,14 +69,42 @@ public partial class Galaxy : Node2D
 
 		if (node == null)
 		{
-			node = _systemScene.Instantiate<GalaxySystem>();
+			// create new node instance
+			node = SystemScene.Instantiate<GalaxySystem>();
 			node.Name = systemName;
 			node.Position = sys.Pos;
 			node.Scale = NodeScaleForZoom(_camera.Zoom);
+			node.Clicked += () => OnSystemClicked(node);
 			_systemNodeLayer.AddChild(node);
 		}
 
-		node.SetSystem(systemName, sys.HasJumpgates);
+		node.SystemModel = sys;
+	}
+
+	private void OnSystemClicked(GalaxySystem node)
+	{
+		if (node == _selectedSystem)
+		{
+			return;
+		}
+		DeselectSystem();
+		_selectedSystem = node;
+		
+		node.Select();
+	}
+
+	private void DeselectSystem()
+	{
+		if (_selectedSystem == null)
+		{
+			return;
+		}
+		_selectedSystem.Deselect();
+		if (!_selectedSystem.IsInGroup(_visibleNodesGroup))
+		{
+			_selectedSystem.Visible = false;
+		}
+		_selectedSystem = null;
 	}
 
 	private void OnShipMoved(string _, string systemName)

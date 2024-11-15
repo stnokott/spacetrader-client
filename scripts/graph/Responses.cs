@@ -16,7 +16,12 @@ public class ShipsResponse
 	public List<Ship> Ships { get; set; }
 }
 
-public class SystemsResponse
+public class SystemCountResponse
 {
-	public SystemConnection Systems { get; set; }
+	public long SystemCount { get; set; }
+}
+
+public class SystemSubscriptionResponse
+{
+	public System System  { get; set; }
 }

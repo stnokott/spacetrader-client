@@ -3,14 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using GraphQL;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
-
+using GraphQLModels;
 using Models;
+// ReSharper disable RedundantArgumentDefaultValue
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
@@ -18,19 +20,21 @@ public partial class Store : Node
 {
 	public static Store Instance { get; private set; }
 
-	public Data Data = new();
+	public readonly Data Data = new();
 
-	private GraphQLHttpClient graphQLClient;
+	private GraphQLHttpClient _graphQlClient;
+	private IDisposable? _systemSubscription;
 
 	public override void _Ready()
 	{
 		Instance = this;
 
-		graphQLClient = new GraphQLHttpClient(
+		_graphQlClient = new GraphQLHttpClient(
 			new GraphQLHttpClientOptions
 			{
 				EndPoint = new Uri("http://localhost:55555/graphql"),
-				EnableAutomaticPersistedQueries = (_) => true
+				EnableAutomaticPersistedQueries = (_) => true,
+				UseWebSocketForQueriesAndMutations = true
 			},
 			new NewtonsoftJsonSerializer()
 		);
@@ -38,15 +42,15 @@ public partial class Store : Node
 
 	public override void _ExitTree()
 	{
-		graphQLClient.Dispose();
+		_systemSubscription?.Dispose();
+		_graphQlClient.Dispose();
 		base._ExitTree();
 	}
-
 
 	[Signal]
 	public delegate void ServerInfoUpdateEventHandler();
 
-	private static readonly GraphQLQuery serverQuery = new(
+	private static readonly GraphQLQuery ServerQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 			.WithServer(new GraphQLModels.ServerQueryBuilder()
 				.WithVersion()
@@ -57,10 +61,10 @@ public partial class Store : Node
 
 	public async Task QueryServer(IProgress<float> _)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ServerResponse>(serverQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.ServerResponse>(ServerQuery);
 		var server = resp.Data.Server; // TODO: check errors
 
-		Data.ServerStatus = new()
+		Data.ServerStatus = new ServerStatusModel
 		{
 			Version = server.Version,
 			NextReset = server.NextReset
@@ -72,7 +76,7 @@ public partial class Store : Node
 	[Signal]
 	public delegate void AgentInfoUpdateEventHandler();
 
-	private static readonly GraphQLQuery agentQuery = new(
+	private static readonly GraphQLQuery AgentQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 			.WithAgent(new GraphQLModels.AgentQueryBuilder()
 				.WithName()
@@ -83,10 +87,10 @@ public partial class Store : Node
 
 	public async Task QueryAgent(IProgress<float> progress)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.AgentResponse>(agentQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.AgentResponse>(AgentQuery);
 		var agent = resp.Data.Agent; // TODO: check errors
 
-		Data.Agent = new()
+		Data.Agent = new AgentInfoModel
 		{
 			Name = agent.Name,
 			Credits = agent.Credits
@@ -97,71 +101,63 @@ public partial class Store : Node
 	[Signal]
 	public delegate void SystemUpdateEventHandler(string name);
 
-	private static GraphQLQuery MakePaginatedSystemsQuery(string afterCursor, int perPage)
-	{
-		var param = new GraphQLModels.GraphQlQueryParameter<GraphQLModels.PageArgs>(
-			"page",
-			nameof(GraphQLModels.PageArgs),
-			new GraphQLModels.PageArgs
-			{
-				After = afterCursor,
-				First = perPage
-			}
-		);
-
-		var q = new GraphQLModels.QueryQueryBuilder()
-			.WithSystems(new GraphQLModels.SystemConnectionQueryBuilder()
-				.WithPageInfo(new GraphQLModels.PageInfoQueryBuilder()
-					.WithHasNextPage()
-					.WithTotalCount()
-				)
-				.WithEdges(new GraphQLModels.SystemEdgeQueryBuilder()
-					.WithCursor()
-					.WithNode(new GraphQLModels.SystemQueryBuilder()
-						.WithAllFields()
-						.ExceptWaypoints()
-					)
-				),
-				param)
-			.WithParameter(param)
-			.Build(GraphQLModels.Formatting.Indented);
-		return new GraphQLQuery(q);
-	}
-
-	private const int SYSTEMS_PER_PAGE = 100;
+	private static readonly GraphQLQuery SystemCountQuery = new(
+		new QueryQueryBuilder().WithSystemCount().Build(GraphQLModels.Formatting.None)
+	);
+	
+	private static readonly GraphQLRequest SubscribeSystemsRequest = new(
+		new GraphQLModels.SubscriptionQueryBuilder()
+			.WithSystem(
+				new SystemQueryBuilder()
+					.WithName()
+					.WithX()
+					.WithY()
+					.WithConnectedSystems()
+			)
+			.Build(GraphQLModels.Formatting.None)
+	);
 
 	public async Task QuerySystems(IProgress<float> progress)
 	{
-		var hasMorePages = true;
-		var nextCursor = "";
-
-		var n = 0;
-		while (hasMorePages)
-		{
-			var query = MakePaginatedSystemsQuery(nextCursor, SYSTEMS_PER_PAGE);
-
-			var resp = await graphQLClient.SendQueryAsync<GraphQLModels.SystemsResponse>(query);
-
-			var data = resp.Data.Systems;
-			// TODO: check errors
-			foreach (var edge in data.Edges)
+		var systemCountResp = await _graphQlClient.SendQueryAsync<SystemCountResponse>(SystemCountQuery);
+		// TODO: handle errors
+		var systemCount = systemCountResp.Data.SystemCount;
+		
+		IObservable<GraphQLResponse<GraphQLModels.SystemSubscriptionResponse>> subscriptionStream = _graphQlClient.CreateSubscriptionStream<GraphQLModels.SystemSubscriptionResponse>(
+			SubscribeSystemsRequest,
+			exception =>
 			{
-				var system = edge.Node;
+				GD.PrintErr("Subscription Error: " + exception.Message);
+			}
+		);
+
+		var i = 0;
+		var completionSource = new TaskCompletionSource();
+		
+		_systemSubscription = subscriptionStream.Subscribe(
+			response =>
+			{
+				var system = response.Data.System;
 				var key = system.Name;
+
 				Data.systems[key] = new SystemModel
 				{
 					Name = system.Name,
-					Pos = new Vector2I(system!.X!.Value, system!.Y!.Value),
-					HasJumpgates = system.HasJumpgates!.Value
+					Pos = new Vector2I(system.X!.Value, system.Y!.Value),
+					ConnectedSystemNames = system.ConnectedSystems
 				};
-				EmitSignal(SignalName.SystemUpdate, key);
-				n++;
+				CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.SystemUpdate, key);
+				progress.Report(i / (float)systemCount);
+				i++;
+				if (i == systemCount) completionSource.SetResult(); // complete underlying task
+			},
+			exception =>
+			{
+				GD.PrintErr("Subscription Error: " + exception.Message);
 			}
+		);
 
-			hasMorePages = data.PageInfo.HasNextPage!.Value;
-			nextCursor = data.Edges.Last().Cursor;
-			progress.Report((float)n / data.PageInfo.TotalCount!.Value);
-		}
+		await completionSource.Task;
 	}
 
 	[Signal]
@@ -171,20 +167,19 @@ public partial class Store : Node
 	[Signal]
 	public delegate void ShipMovedToSystemEventHandler(string ship, string system);
 
-	private static readonly GraphQLQuery shipsQuery = new(
+	private static readonly GraphQLQuery ShipsQuery = new(
 		new GraphQLModels.QueryQueryBuilder()
 		.WithShips(new GraphQLModels.ShipQueryBuilder()
 			.WithName()
 			.WithStatus()
 			.WithSystem(new GraphQLModels.SystemQueryBuilder().WithName())
-			.WithWaypoint(new GraphQLModels.WaypointQueryBuilder().WithName())
 		)
 		.Build(GraphQLModels.Formatting.None)
 	);
 
 	public async Task QueryShips(IProgress<float> progress)
 	{
-		var resp = await graphQLClient.SendQueryAsync<GraphQLModels.ShipsResponse>(shipsQuery);
+		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.ShipsResponse>(ShipsQuery);
 		// TODO: check errors
 
 		for (var i = 0; i < resp.Data.Ships.Count; i++)
@@ -196,9 +191,8 @@ public partial class Store : Node
 			var newShip = new ShipModel
 			{
 				Name = ship.Name,
-				Status = (GraphQLModels.ShipStatus)ship!.Status!,
-				SystemName = ship.System.Name,
-				WaypointName = ship.Waypoint.Name
+				Status = (GraphQLModels.ShipStatus)ship.Status!,
+				SystemName = ship.System.Name
 			};
 			Data.ships[key] = newShip;
 			EmitSignal(SignalName.ShipUpdate, key);
@@ -232,20 +226,8 @@ public class Data
 	public AgentInfoModel Agent = new() { Name = "!AGENTNAME", Credits = 0 };
 
 	internal readonly ConcurrentDictionary<string, SystemModel> systems = new();
-	public ReadOnlyDictionary<string, SystemModel> Systems
-	{
-		get
-		{
-			return new ReadOnlyDictionary<string, SystemModel>(systems);
-		}
-	}
+	public ReadOnlyDictionary<string, SystemModel> Systems => new(systems);
 
 	internal readonly ConcurrentDictionary<string, ShipModel> ships = new();
-	public ReadOnlyDictionary<string, ShipModel> Ships
-	{
-		get
-		{
-			return new ReadOnlyDictionary<string, ShipModel>(ships);
-		}
-	}
+	public ReadOnlyDictionary<string, ShipModel> Ships => new(ships);
 }
