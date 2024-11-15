@@ -3,12 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using GraphQL;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
+using GraphQLModels;
 using Models;
 // ReSharper disable RedundantArgumentDefaultValue
 
@@ -21,6 +23,7 @@ public partial class Store : Node
 	public readonly Data Data = new();
 
 	private GraphQLHttpClient _graphQlClient;
+	private IDisposable? _systemSubscription;
 
 	public override void _Ready()
 	{
@@ -30,7 +33,8 @@ public partial class Store : Node
 			new GraphQLHttpClientOptions
 			{
 				EndPoint = new Uri("http://localhost:55555/graphql"),
-				EnableAutomaticPersistedQueries = (_) => true
+				EnableAutomaticPersistedQueries = (_) => true,
+				UseWebSocketForQueriesAndMutations = true
 			},
 			new NewtonsoftJsonSerializer()
 		);
@@ -38,10 +42,10 @@ public partial class Store : Node
 
 	public override void _ExitTree()
 	{
+		_systemSubscription?.Dispose();
 		_graphQlClient.Dispose();
 		base._ExitTree();
 	}
-
 
 	[Signal]
 	public delegate void ServerInfoUpdateEventHandler();
@@ -97,106 +101,68 @@ public partial class Store : Node
 	[Signal]
 	public delegate void SystemUpdateEventHandler(string name);
 
-	private static GraphQLQuery MakePaginatedSystemsQuery(string afterCursor, int perPage)
-	{
-		var param = new GraphQLModels.GraphQlQueryParameter<GraphQLModels.PageArgs>(
-			"page",
-			nameof(GraphQLModels.PageArgs),
-			new GraphQLModels.PageArgs
-			{
-				After = afterCursor,
-				First = perPage
-			}
-		);
-
-		var q = new GraphQLModels.QueryQueryBuilder()
-			.WithSystems(new GraphQLModels.SystemConnectionQueryBuilder()
-				.WithPageInfo(new GraphQLModels.PageInfoQueryBuilder()
-					.WithHasNextPage()
-					.WithTotalCount()
-				)
-				.WithEdges(new GraphQLModels.SystemEdgeQueryBuilder()
-					.WithCursor()
-					.WithNode(new GraphQLModels.SystemQueryBuilder()
-						.WithName()
-						.WithX()
-						.WithY()
-						.WithHasJumpgates()
+	private static readonly GraphQLQuery SystemCountQuery = new(
+		new QueryQueryBuilder().WithSystemCount().Build(GraphQLModels.Formatting.None)
+	);
+	
+	private static readonly GraphQLRequest SubscribeSystemsRequest = new(
+		new GraphQLModels.SubscriptionQueryBuilder()
+			.WithSystem(
+				new SystemQueryBuilder()
+					.WithName()
+					.WithX()
+					.WithY()
+					.WithWaypoints(new WaypointQueryBuilder()
+						.WithConnectedTo(
+							new WaypointQueryBuilder()
+								.WithName()
+						)
 					)
-				),
-				param)
-			.WithParameter(param)
-		;
-		return new GraphQLQuery(q.Build(GraphQLModels.Formatting.None));
-	}
-
-	private const int SystemsPerPage = 100;
+			)
+			.Build(GraphQLModels.Formatting.None)
+	);
 
 	public async Task QuerySystems(IProgress<float> progress)
 	{
-		var hasMorePages = true;
-		var nextCursor = "";
-
-		var n = 0;
-		while (hasMorePages)
-		{
-			var query = MakePaginatedSystemsQuery(nextCursor, SystemsPerPage);
-
-			var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.SystemsResponse>(query);
-
-			var data = resp.Data.Systems;
-			// TODO: check errors
-			foreach (var edge in data.Edges)
+		var systemCountResp = await _graphQlClient.SendQueryAsync<SystemCountResponse>(SystemCountQuery);
+		// TODO: handle errors
+		var systemCount = systemCountResp.Data.SystemCount;
+		
+		IObservable<GraphQLResponse<GraphQLModels.SystemSubscriptionResponse>> subscriptionStream = _graphQlClient.CreateSubscriptionStream<GraphQLModels.SystemSubscriptionResponse>(
+			SubscribeSystemsRequest,
+			exception =>
 			{
-				var system = edge.Node;
+				GD.PrintErr("Subscription Error: " + exception.Message);
+			}
+		);
+
+		var i = 0;
+		var completionSource = new TaskCompletionSource();
+		
+		_systemSubscription = subscriptionStream.Subscribe(
+			response =>
+			{
+				var system = response.Data.System;
 				var key = system.Name;
 
 				Data.systems[key] = new SystemModel
 				{
 					Name = system.Name,
 					Pos = new Vector2I(system.X!.Value, system.Y!.Value),
-					HasJumpgates = system.HasJumpgates!.Value
+					HasJumpgates = system.Waypoints.Any(wp => wp.ConnectedTo.Count > 0)
 				};
-				EmitSignal(SignalName.SystemUpdate, key);
-				n++;
+				CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.SystemUpdate, key);
+				progress.Report(i / (float)systemCount);
+				i++;
+				if (i == systemCount) completionSource.SetResult(); // complete underlying task
+			},
+			exception =>
+			{
+				GD.PrintErr("Subscription Error: " + exception.Message);
 			}
+		);
 
-			hasMorePages = data.PageInfo.HasNextPage!.Value;
-			nextCursor = data.Edges.Last().Cursor;
-			progress.Report((float)n / data.PageInfo.TotalCount!.Value);
-		}
-	}
-
-	private static GraphQLQuery MakeSystemQuery(string id)
-	{
-		var builder = new GraphQLModels.QueryQueryBuilder()
-			.WithSystem(new GraphQLModels.SystemQueryBuilder()
-				.WithWaypoints(new GraphQLModels.WaypointQueryBuilder()
-					.WithConnectedTo(new GraphQLModels.WaypointQueryBuilder()
-						.WithSystem(new GraphQLModels.SystemQueryBuilder()
-							.WithName()
-						)
-					)
-				), id
-			)
-		;
-		return new GraphQLQuery(builder.Build(GraphQLModels.Formatting.None));
-	}
-
-	public async Task<DetailedSystemModel> QuerySystem(string id)
-	{
-		var q = MakeSystemQuery(id);
-		var resp = await _graphQlClient.SendQueryAsync<GraphQLModels.SingleSystemResponse>(q);
-		// TODO: error handling
-
-		var connectedSystems = resp.Data.System.Waypoints.SelectMany((wp) =>
-		{
-			return wp.ConnectedTo.Select((wpConnected) => wpConnected.System.Name);
-		});
-		return new DetailedSystemModel
-		{
-			connectedSystems = connectedSystems.ToHashSet()
-		};
+		await completionSource.Task;
 	}
 
 	[Signal]
@@ -241,12 +207,12 @@ public partial class Store : Node
 			// check ship movement between systems
 			if (shipExists && oldShip.SystemName != newShip.SystemName)
 			{
-				EmitSignal(SignalName.ShipMovedFromSystem, oldShip.Name, oldShip.Name);
-				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+				//EmitSignal(SignalName.ShipMovedFromSystem, oldShip.Name, oldShip.Name);
+				//EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
 			}
 			if (!shipExists)
 			{
-				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+				//EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
 			}
 			progress.Report((float)(i + 1) / resp.Data.Ships.Count);
 		}

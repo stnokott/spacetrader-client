@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
+using Models;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
@@ -77,7 +78,7 @@ public partial class Galaxy : Node2D
 			_systemNodeLayer.AddChild(node);
 		}
 
-		node.SetSystem(systemName, sys.HasJumpgates);
+		node.SetSystem(sys);
 	}
 
 	private async void OnSystemClicked(GalaxySystem node)
@@ -89,9 +90,10 @@ public partial class Galaxy : Node2D
 		DeselectSystem();
 		_selectedSystem = node;
 
-		var system = await Store.Instance.QuerySystem(node.SystemName);
-		var connections = system.connectedSystems.Select((systemName) => _systemNodeLayer.GetNode<Node2D>(systemName).Position);
-		node.Select(connections);
+		// TODO: fix
+		//var system = await Store.Instance.QuerySystem(node.SystemName);
+		//var connections = system.connectedSystems.Select((systemName) => _systemNodeLayer.GetNode<Node2D>(systemName).Position);
+		//node.Select(connections);
 	}
 
 	private void DeselectSystem()

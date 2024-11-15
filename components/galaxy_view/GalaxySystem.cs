@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using Models;
 
 #pragma warning disable CS8618 // Godot classes are reliably initialized in _Ready()
 
@@ -45,12 +46,12 @@ public partial class GalaxySystem : Sprite2D
 		SetShipCount(0);
 	}
 
-	public void SetSystem(string name, bool hasJumpgates)
+	public void SetSystem(SystemModel system)
 	{
 		// set system name
-		SystemName = name;
+		SystemName = system.Name;
 		// set jump gate
-		_jumpgateIcon.Visible = hasJumpgates;
+		_jumpgateIcon.Visible = system.HasJumpgates;
 	}
 
 	public void SetShipCount(int n)
