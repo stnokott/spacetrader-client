@@ -1068,7 +1068,6 @@ namespace GraphQLModels
         public const string ShipRole = "ShipRole";
         public const string ShipStatus = "ShipStatus";
         public const string SystemType = "SystemType";
-        public const string WaypointType = "WaypointType";
 
         public const string Agent = "Agent";
         public const string Query = "Query";
@@ -1078,7 +1077,6 @@ namespace GraphQLModels
         public const string Ship = "Ship";
         public const string Subscription = "Subscription";
         public const string System = "System";
-        public const string Waypoint = "Waypoint";
 
         public static readonly IReadOnlyDictionary<global::System.Type, string> ReverseMapping =
             new Dictionary<global::System.Type, string>
@@ -1152,24 +1150,6 @@ namespace GraphQLModels
         [EnumMember(Value = "UNSTABLE")] Unstable,
         [EnumMember(Value = "WHITE_DWARF")] WhiteDwarf,
         [EnumMember(Value = "YOUNG_STAR")] YoungStar
-    }
-
-    public enum WaypointType
-    {
-        [EnumMember(Value = "ARTIFICIAL_GRAVITY_WELL")] ArtificialGravityWell,
-        [EnumMember(Value = "ASTEROID")] Asteroid,
-        [EnumMember(Value = "ASTEROID_BASE")] AsteroidBase,
-        [EnumMember(Value = "ASTEROID_FIELD")] AsteroidField,
-        [EnumMember(Value = "DEBRIS_FIELD")] DebrisField,
-        [EnumMember(Value = "ENGINEERED_ASTEROID")] EngineeredAsteroid,
-        [EnumMember(Value = "FUEL_STATION")] FuelStation,
-        [EnumMember(Value = "GAS_GIANT")] GasGiant,
-        [EnumMember(Value = "GRAVITY_WELL")] GravityWell,
-        [EnumMember(Value = "JUMP_GATE")] JumpGate,
-        [EnumMember(Value = "MOON")] Moon,
-        [EnumMember(Value = "NEBULA")] Nebula,
-        [EnumMember(Value = "ORBITAL_STATION")] OrbitalStation,
-        [EnumMember(Value = "PLANET")] Planet
     }
     #endregion
 
@@ -1487,8 +1467,7 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "name" },
                 new GraphQlFieldMetadata { Name = "role" },
                 new GraphQlFieldMetadata { Name = "status" },
-                new GraphQlFieldMetadata { Name = "system", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "waypoint", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) }
+                new GraphQlFieldMetadata { Name = "system", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) }
             };
 
         protected override string TypeName { get { return "Ship"; } } 
@@ -1534,16 +1513,6 @@ namespace GraphQLModels
         {
             return ExceptField("system");
         }
-
-        public ShipQueryBuilder WithWaypoint(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithObjectField("waypoint", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
-        }
-
-        public ShipQueryBuilder ExceptWaypoint()
-        {
-            return ExceptField("waypoint");
-        }
     }
 
     public class SubscriptionQueryBuilder : GraphQlQueryBuilder<SubscriptionQueryBuilder>
@@ -1587,8 +1556,7 @@ namespace GraphQLModels
                 new GraphQlFieldMetadata { Name = "type" },
                 new GraphQlFieldMetadata { Name = "x" },
                 new GraphQlFieldMetadata { Name = "y" },
-                new GraphQlFieldMetadata { Name = "waypoints", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "factions", IsComplex = true }
+                new GraphQlFieldMetadata { Name = "connectedSystems", IsComplex = true }
             };
 
         protected override string TypeName { get { return "System"; } } 
@@ -1635,102 +1603,14 @@ namespace GraphQLModels
             return ExceptField("y");
         }
 
-        public SystemQueryBuilder WithWaypoints(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
+        public SystemQueryBuilder WithConnectedSystems(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
         {
-            return WithObjectField("waypoints", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
+            return WithScalarField("connectedSystems", alias, new GraphQlDirective[] { include, skip });
         }
 
-        public SystemQueryBuilder ExceptWaypoints()
+        public SystemQueryBuilder ExceptConnectedSystems()
         {
-            return ExceptField("waypoints");
-        }
-
-        public SystemQueryBuilder WithFactions(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("factions", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public SystemQueryBuilder ExceptFactions()
-        {
-            return ExceptField("factions");
-        }
-    }
-
-    public class WaypointQueryBuilder : GraphQlQueryBuilder<WaypointQueryBuilder>
-    {
-        private static readonly GraphQlFieldMetadata[] AllFieldMetadata =
-            new []
-            {
-                new GraphQlFieldMetadata { Name = "name" },
-                new GraphQlFieldMetadata { Name = "system", IsComplex = true, QueryBuilderType = typeof(SystemQueryBuilder) },
-                new GraphQlFieldMetadata { Name = "type" },
-                new GraphQlFieldMetadata { Name = "x" },
-                new GraphQlFieldMetadata { Name = "y" },
-                new GraphQlFieldMetadata { Name = "connectedTo", IsComplex = true, QueryBuilderType = typeof(WaypointQueryBuilder) }
-            };
-
-        protected override string TypeName { get { return "Waypoint"; } } 
-
-        public override IReadOnlyList<GraphQlFieldMetadata> AllFields { get { return AllFieldMetadata; } } 
-
-        public WaypointQueryBuilder WithName(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("name", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptName()
-        {
-            return ExceptField("name");
-        }
-
-        public WaypointQueryBuilder WithSystem(SystemQueryBuilder systemQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithObjectField("system", alias, systemQueryBuilder, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptSystem()
-        {
-            return ExceptField("system");
-        }
-
-        public WaypointQueryBuilder WithType(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("type", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptType()
-        {
-            return ExceptField("type");
-        }
-
-        public WaypointQueryBuilder WithX(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("x", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptX()
-        {
-            return ExceptField("x");
-        }
-
-        public WaypointQueryBuilder WithY(string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithScalarField("y", alias, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptY()
-        {
-            return ExceptField("y");
-        }
-
-        public WaypointQueryBuilder WithConnectedTo(WaypointQueryBuilder waypointQueryBuilder, string alias = null, IncludeDirective include = null, SkipDirective skip = null)
-        {
-            return WithObjectField("connectedTo", alias, waypointQueryBuilder, new GraphQlDirective[] { include, skip });
-        }
-
-        public WaypointQueryBuilder ExceptConnectedTo()
-        {
-            return ExceptField("connectedTo");
+            return ExceptField("connectedSystems");
         }
     }
     #endregion
@@ -1780,7 +1660,6 @@ namespace GraphQLModels
         public ShipRole? Role { get; set; }
         public ShipStatus? Status { get; set; }
         public System System { get; set; }
-        public Waypoint Waypoint { get; set; }
     }
 
     public class Subscription
@@ -1794,18 +1673,7 @@ namespace GraphQLModels
         public SystemType? Type { get; set; }
         public int? X { get; set; }
         public int? Y { get; set; }
-        public ICollection<Waypoint> Waypoints { get; set; }
-        public ICollection<Faction> Factions { get; set; }
-    }
-
-    public class Waypoint
-    {
-        public string Name { get; set; }
-        public System System { get; set; }
-        public WaypointType? Type { get; set; }
-        public int? X { get; set; }
-        public int? Y { get; set; }
-        public ICollection<Waypoint> ConnectedTo { get; set; }
+        public ICollection<string> ConnectedSystems { get; set; }
     }
     #endregion
 }

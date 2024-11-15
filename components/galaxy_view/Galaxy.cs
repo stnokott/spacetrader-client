@@ -78,10 +78,10 @@ public partial class Galaxy : Node2D
 			_systemNodeLayer.AddChild(node);
 		}
 
-		node.SetSystem(sys);
+		node.SystemModel = sys;
 	}
 
-	private async void OnSystemClicked(GalaxySystem node)
+	private void OnSystemClicked(GalaxySystem node)
 	{
 		if (node == _selectedSystem)
 		{
@@ -89,11 +89,8 @@ public partial class Galaxy : Node2D
 		}
 		DeselectSystem();
 		_selectedSystem = node;
-
-		// TODO: fix
-		//var system = await Store.Instance.QuerySystem(node.SystemName);
-		//var connections = system.connectedSystems.Select((systemName) => _systemNodeLayer.GetNode<Node2D>(systemName).Position);
-		//node.Select(connections);
+		
+		node.Select();
 	}
 
 	private void DeselectSystem()

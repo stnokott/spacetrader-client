@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Models;
 
@@ -6,12 +7,18 @@ using Models;
 
 public partial class GalaxySystem : Sprite2D
 {
-	private Label _systemNameLabel;
-	public string SystemName
+	private SystemModel _systemModel;
+	public SystemModel SystemModel
 	{
-		get => _systemNameLabel.Text;
-		set => _systemNameLabel.Text = value;
+		set {
+			// set system name
+			_systemNameLabel.Text = value.Name;
+			// set jump gate
+			_jumpgateIcon.Visible = value.ConnectedSystemNames.Count > 0;
+			_systemModel = value;
+		}
 	}
+	private Label _systemNameLabel;
 	private TextureRect _shipIcon;
 	private Sprite2D _jumpgateIcon;
 	private Node2D _jumpgateConnectionLayer;
@@ -44,14 +51,6 @@ public partial class GalaxySystem : Sprite2D
 		};
 
 		SetShipCount(0);
-	}
-
-	public void SetSystem(SystemModel system)
-	{
-		// set system name
-		SystemName = system.Name;
-		// set jump gate
-		_jumpgateIcon.Visible = system.HasJumpgates;
 	}
 
 	public void SetShipCount(int n)
@@ -95,13 +94,14 @@ public partial class GalaxySystem : Sprite2D
 	private static readonly PackedScene SystemConnectionScene = GD.Load<PackedScene>("res://components/galaxy_view/galaxy_system_connection.tscn");
 
 	private static readonly StringName SystemConnectionGroup = new("system_connections");
-	public void Select(IEnumerable<Vector2> connections)
+	public void Select()
 	{
-		foreach (var connPos in connections)
+		var connectedSysPositions = _systemModel.ConnectedSystemNames.Select(sysName => Store.Instance.Data.Systems[sysName].Pos);
+		foreach (var sysPos in connectedSysPositions)
 		{
 			var node = SystemConnectionScene.Instantiate<GalaxySystemConnection>();
 			node.Position = Vector2.Zero;
-			node.SetPointPosition(1, connPos - Position);
+			node.SetPointPosition(1, sysPos - Position);
 			node.AddToGroup(SystemConnectionGroup);
 			_jumpgateConnectionLayer.AddChild(node);
 		}
@@ -111,7 +111,7 @@ public partial class GalaxySystem : Sprite2D
 
 	public void Deselect()
 	{
-		GetTree().CallGroup(SystemConnectionGroup, MethodName.QueueFree);
+		GetTree().CallGroup(SystemConnectionGroup, Node.MethodName.QueueFree);
 
 		_selected = false;
 		OnMouseExited(); // replay exit animation to fade out

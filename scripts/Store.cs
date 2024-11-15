@@ -112,12 +112,7 @@ public partial class Store : Node
 					.WithName()
 					.WithX()
 					.WithY()
-					.WithWaypoints(new WaypointQueryBuilder()
-						.WithConnectedTo(
-							new WaypointQueryBuilder()
-								.WithName()
-						)
-					)
+					.WithConnectedSystems()
 			)
 			.Build(GraphQLModels.Formatting.None)
 	);
@@ -149,7 +144,7 @@ public partial class Store : Node
 				{
 					Name = system.Name,
 					Pos = new Vector2I(system.X!.Value, system.Y!.Value),
-					HasJumpgates = system.Waypoints.Any(wp => wp.ConnectedTo.Count > 0)
+					ConnectedSystemNames = system.ConnectedSystems
 				};
 				CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.SystemUpdate, key);
 				progress.Report(i / (float)systemCount);
@@ -178,7 +173,6 @@ public partial class Store : Node
 			.WithName()
 			.WithStatus()
 			.WithSystem(new GraphQLModels.SystemQueryBuilder().WithName())
-			.WithWaypoint(new GraphQLModels.WaypointQueryBuilder().WithName())
 		)
 		.Build(GraphQLModels.Formatting.None)
 	);
@@ -198,8 +192,7 @@ public partial class Store : Node
 			{
 				Name = ship.Name,
 				Status = (GraphQLModels.ShipStatus)ship.Status!,
-				SystemName = ship.System.Name,
-				WaypointName = ship.Waypoint.Name
+				SystemName = ship.System.Name
 			};
 			Data.ships[key] = newShip;
 			EmitSignal(SignalName.ShipUpdate, key);
@@ -207,12 +200,12 @@ public partial class Store : Node
 			// check ship movement between systems
 			if (shipExists && oldShip.SystemName != newShip.SystemName)
 			{
-				//EmitSignal(SignalName.ShipMovedFromSystem, oldShip.Name, oldShip.Name);
-				//EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+				EmitSignal(SignalName.ShipMovedFromSystem, oldShip.Name, oldShip.Name);
+				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
 			}
 			if (!shipExists)
 			{
-				//EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
+				EmitSignal(SignalName.ShipMovedToSystem, newShip.Name, newShip.SystemName);
 			}
 			progress.Report((float)(i + 1) / resp.Data.Ships.Count);
 		}
